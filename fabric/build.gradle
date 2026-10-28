@@ -1,0 +1,155 @@
+plugins {
+    id 'fabric-loom' version "${fabric_loom_version}"
+}
+
+// Common's source sets are reached through this: inside a dependencies block, project(...) is a
+// dependency rather than the project.
+def common = project(':common')
+
+// -PwithoutChecks leaves Checks off the dev runs, so the GameTests run as a pack without it would.
+def withoutChecks = project.hasProperty('withoutChecks')
+// -PwithInitiative puts Initiative on the dev runs, for trying turn-based fights by hand: ./gradlew :fabric:runClient
+// -PwithInitiative. tools/test-all.sh never passes it, so the GameTests always run without Initiative.
+def withInitiative = project.hasProperty('withInitiative')
+
+// Gametest delegators live here, not main: shipping them in the release fabric.mod.json breaks
+// consumers, since the shared *Scenarios bodies they call are deliberately not in the jar.
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.compileClasspath
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+        runtimeClasspath += sourceSets.main.output
+    }
+    // The screenshot driver, for the same reason: only the uiShots run puts it on the classpath.
+    uishots {
+        compileClasspath += sourceSets.main.compileClasspath
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // Common is compiled against the same Mojang mappings. Use implementation (not compileOnly) so
+    // common's classes/resources are on the dev-run runtime classpath; the production jar bundles
+    // and remaps them via the jar/processResources wiring below. Plain implementation (not
+    // modImplementation) keeps Loom from trying to remap common — dev runs want its named classes.
+    implementation project(':common')
+
+    // Shared GameTest bodies: on the gametest source set only, never bundled into the jar.
+    gametestImplementation common.sourceSets.gametest.output
+    uishotsImplementation common.sourceSets.uishots.output
+
+    // Critfall and GeckoLib consumed as published Modrinth artifacts (the intermediary-mapped release
+    // jars); modImplementation has Loom remap them to named for dev runs and load them as mods.
+    modImplementation "maven.modrinth:critfall:${critfall_fabric_modrinth_id}"
+    modImplementation "maven.modrinth:geckolib:${geckolib_fabric_modrinth_id}"
+
+    // Checks on the dev runs only, so the GameTests exercise the Checks path; never a compile dependency.
+    if (!withoutChecks) {
+        modRuntimeOnly checksArtifact('fabric')
+    }
+    if (withInitiative) {
+        modRuntimeOnly initiativeArtifact('fabric')
+    }
+
+}
+
+def gameTestDir = 'run-gametest'
+def uiShotsDir = 'run-uishots'
+def uiShotsOutput = rootProject.file('design/screenshots/fabric')
+
+loom {
+    runs {
+        server {
+            server()
+            ideConfigGenerated = true
+        }
+        client {
+            client()
+            programArgs '--username', 'Dev1'
+        }
+        // Second client for party playtests: its own game directory so the two do not share a
+        // session lock, and its own name so the two players can be told apart.
+        client2 {
+            client()
+            name = 'Minecraft Client 2'
+            runDir = 'run2'
+            programArgs '--username', 'Dev2'
+            ideConfigGenerated = true
+        }
+        // Its own run directory, its world wiped before every run, so test worlds never pile up and the
+        // dev server's world in run/ is left alone.
+        gametest {
+            server()
+            name = 'Game Test'
+            runDir = gameTestDir
+            source sourceSets.gametest
+            property 'fabric-api.gametest'
+            property 'fabric-api.gametest.report-file', "${project.buildDir}/junit.xml"
+            if (withoutChecks) {
+                property 'critfall_horseman.gametest.withoutChecks', 'true'
+            }
+            ideConfigGenerated = true
+        }
+        // Dev-only screenshot run: saves the Horseman to design/screenshots/fabric, then quits.
+        uiShots {
+            client()
+            name = 'UI Shots'
+            runDir = uiShotsDir
+            source sourceSets.uishots
+            programArgs '--username', 'Dev1', '--width', '1920', '--height', '1080'
+            property 'critfall_horseman.uishots.dir', uiShotsOutput.absolutePath
+        }
+    }
+}
+
+// Bundle common's compiled classes so remapJar remaps them into the Fabric jar. Common's
+// resources come through processResources below (bundling output too would duplicate them).
+jar {
+    from common.sourceSets.main.output.classesDirs
+}
+
+processResources {
+    from common.sourceSets.main.resources
+
+    def props = [
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_version            : mod_version,
+            mod_description        : mod_description,
+            mod_license            : mod_license,
+            mod_issue_tracker      : mod_issue_tracker,
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            fabric_loader_version  : fabric_loader_version,
+            critfall_min_version   : critfall_min_version,
+            geckolib_min_version   : geckolib_min_version,
+            checks_min_version     : checks_min_version,
+            initiative_min_version : initiative_min_version,
+    ]
+    inputs.properties props
+    filesMatching(['fabric.mod.json', 'pack.mcmeta']) {
+        expand props
+    }
+}
+
+def wipeGameTestWorld = tasks.register('wipeGameTestWorld', Delete) {
+    delete file("${gameTestDir}/world")
+}
+tasks.matching { it.name == 'runGametest' }.configureEach { dependsOn wipeGameTestWorld }
+
+// A fresh world and no stale screenshots on every run.
+def wipeUiShots = tasks.register('wipeUiShots', Delete) {
+    delete file("${uiShotsDir}/saves"), uiShotsOutput
+}
+tasks.matching { it.name == 'runUiShots' }.configureEach { dependsOn wipeUiShots }
+
+// Nothing in the build graph compiles the gametest or uishots source sets otherwise; keep `check` catching them.
+tasks.named('check') { dependsOn tasks.named('gametestClasses'), tasks.named('uishotsClasses') }

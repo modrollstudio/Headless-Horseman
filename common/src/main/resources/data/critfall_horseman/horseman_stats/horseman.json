@@ -1,0 +1,6 @@
+{
+  "max_health": 150,
+  "blade_fire": "1d4",
+  "charge": { "dc": 13, "damage": "1d4+2" },
+  "head_throw": { "dc": 14, "damage": "2d4+1" }
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "critfall_horseman_uishots",
+  "version": "1.0.0",
+  "name": "Critfall: Headless Horseman UI Shots",
+  "description": "Dev-only screenshot run for Critfall: Headless Horseman; never shipped.",
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["studio.modroll.horseman.fabric.uishots.FabricUiShots"]
+  },
+  "depends": {
+    "critfall_horseman": "*"
+  }
+}

@@ -1,0 +1,117 @@
+plugins {
+    id 'com.diffplug.spotless' version '8.8.0' apply false
+    id 'net.neoforged.moddev' version '2.0.141' apply false
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'com.diffplug.spotless'
+
+    group = mod_group
+    version = mod_version
+    base.archivesName = "${archives_name}-${project.name}"
+
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            name = 'NeoForged'
+            url = 'https://maven.neoforged.net/releases'
+        }
+        maven {
+            name = 'Modrinth'
+            url = 'https://api.modrinth.com/maven'
+            content { includeGroup 'maven.modrinth' }
+        }
+        // Initiative and Checks, which have no Modrinth versions; see initiativeArtifact and checksArtifact below.
+        maven {
+            name = 'CurseMaven'
+            url = 'https://cursemaven.com'
+            content { includeGroup 'curse.maven' }
+        }
+    }
+
+    // A loader's Checks jar: pinned by Modrinth version id like Critfall, or from CurseForge by its file id while that
+    // Modrinth id is still empty in gradle.properties.
+    ext.checksArtifact = { String loader ->
+        def modrinthId = project.property("checks_${loader}_modrinth_id")
+        modrinthId
+                ? "maven.modrinth:critfall-checks:${modrinthId}"
+                : "curse.maven:critfall-checks-${checks_curseforge_project_id}:${project.property("checks_${loader}_curseforge_file_id")}"
+    }
+
+    // A loader's Initiative jar, from CurseForge by its file id.
+    ext.initiativeArtifact = { String loader ->
+        "curse.maven:critfall-initiative-${initiative_curseforge_project_id}:${project.property("initiative_${loader}_curseforge_file_id")}"
+    }
+
+    dependencies {
+        testImplementation platform("org.junit:junit-bom:${junit_version}")
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.named('jar') {
+        from(rootProject.file('LICENSE')) {
+            rename { "${it}_${mod_id}" }
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events 'passed', 'skipped', 'failed'
+            exceptionFormat = 'full'
+        }
+    }
+
+    spotless {
+        java {
+            target 'src/*/java/**/*.java'
+            palantirJavaFormat()
+            removeUnusedImports()
+            importOrder()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+
+    afterEvaluate {
+        def releaseJar = plugins.hasPlugin('fabric-loom') ? tasks.remapJar : tasks.jar
+
+        // A shipped gametest entrypoint whose *Scenarios body is not in the jar breaks every
+        // consumer's gametest run, and the screenshot driver would take over a player's client —
+        // this guard fails the build if gametest or uishots code reaches a release jar.
+        def guard = tasks.register('verifyNoGametestInReleaseJar') {
+            dependsOn releaseJar
+            def jarFile = releaseJar.archiveFile
+            def devOnly = ['gametest', 'uishots']
+            doLast {
+                def offenders = []
+                new java.util.zip.ZipFile(jarFile.get().asFile).withCloseable { zip ->
+                    zip.entries().each { entry ->
+                        if (devOnly.any { entry.name.toLowerCase().contains(it) }) {
+                            offenders << entry.name
+                        }
+                    }
+                    def modJson = zip.getEntry('fabric.mod.json')
+                    def modJsonText = modJson == null ? '' : zip.getInputStream(modJson).getText('UTF-8')
+                    devOnly.findAll { modJsonText.contains(it) }.each {
+                        offenders << "fabric.mod.json declares a ${it} entrypoint"
+                    }
+                }
+                if (!offenders.isEmpty()) {
+                    throw new GradleException("dev-only code leaked into ${jarFile.get().asFile.name}: ${offenders}")
+                }
+            }
+        }
+        tasks.named('check') { it.dependsOn(guard) }
+    }
+}

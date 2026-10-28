@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          validate-wrappers: true
+
+      - name: Check (unit tests, Spotless, release-jar guard)
+        run: ./gradlew check --stacktrace
+
+      # Assemble the loader jars so a jar-packaging break (e.g. a duplicate resource entry) fails CI
+      # instead of surfacing only at release time. `check` alone never runs the jar tasks.
+      - name: Assemble loader jars
+        run: ./gradlew assemble --stacktrace
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/'
+
+      - name: Upload loader jars
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: critfall-horseman-jars
+          path: |
+            neoforge/build/libs/*.jar
+            fabric/build/libs/*.jar

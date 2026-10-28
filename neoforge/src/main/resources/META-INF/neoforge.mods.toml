@@ -1,0 +1,55 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "${mod_license}"
+issueTrackerURL = "${mod_issue_tracker}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+description = '''${mod_description}'''
+authors = "${mod_authors}"
+displayURL = "https://modroll.studio"
+logoFile = "logo.png"
+
+[[dependencies.${mod_id}]]
+modId = "critfall"
+type = "required"
+versionRange = "${critfall_version_range}"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "geckolib"
+type = "required"
+versionRange = "${geckolib_version_range}"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "checks"
+type = "optional"
+versionRange = "${checks_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "initiative"
+type = "optional"
+versionRange = "${initiative_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neoforge_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"

@@ -1,0 +1,14 @@
+{
+  "format_version": 1,
+  "matches": ["critfall_horseman:gallows_steed"],
+  "armor_class": 13,
+  "attack_bonus": 5,
+  "save_bonus": 2,
+  "damage": { "melee": "1d6" },
+  "crit_range": 20,
+  "damage_modifiers": {
+    "immune": ["#minecraft:is_fire"],
+    "resist": [],
+    "vulnerable": []
+  }
+}

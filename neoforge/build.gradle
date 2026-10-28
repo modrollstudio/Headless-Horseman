@@ -1,0 +1,146 @@
+plugins {
+    id 'net.neoforged.moddev'
+}
+
+// Common's source sets are reached through this: inside a dependencies block, project(...) is a
+// dependency rather than the project.
+def common = project(':common')
+
+// GameTest registration shims and their structure template: dev runs only, never shipped.
+sourceSets {
+    gametest
+    uishots
+}
+
+// -PwithoutChecks leaves Checks off the dev runs, so the GameTests run as a pack without it would.
+def withoutChecks = project.hasProperty('withoutChecks')
+// -PwithInitiative puts Initiative on the dev runs, for trying turn-based fights by hand: ./gradlew :neoforge:runClient
+// -PwithInitiative. tools/test-all.sh never passes it, so the GameTests always run without Initiative.
+def withInitiative = project.hasProperty('withInitiative')
+
+def gameTestDir = file('run-gametest')
+def uiShotsDir = file('run-uishots')
+def uiShotsOutput = rootProject.file('design/screenshots/neoforge')
+
+neoForge {
+    version = neoforge_version
+
+    addModdingDependenciesTo sourceSets.gametest
+    addModdingDependenciesTo sourceSets.uishots
+
+    runs {
+        client {
+            client()
+            programArguments.addAll '--username', 'Dev1'
+        }
+        // Second client for party playtests: its own game directory so the two do not share a
+        // session lock, and its own name so the two players can be told apart.
+        client2 {
+            client()
+            programArguments.addAll '--username', 'Dev2'
+            gameDirectory = file('run2')
+        }
+        server {
+            server()
+        }
+        // Its own game directory, its world wiped before every run, so test worlds never pile up and the
+        // dev server's world in run/ is left alone.
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+            if (withoutChecks) {
+                systemProperty 'critfall_horseman.gametest.withoutChecks', 'true'
+            }
+            gameDirectory = gameTestDir
+        }
+        // Dev-only screenshot run: saves the Horseman to design/screenshots/neoforge, then quits.
+        // The output property is what switches the driver on, so other runs that load it stay untouched.
+        uiShots {
+            client()
+            programArguments.addAll '--username', 'Dev1', '--width', '1920', '--height', '1080'
+            gameDirectory = uiShotsDir
+            systemProperty 'critfall_horseman.uishots.dir', uiShotsOutput.absolutePath
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet common.sourceSets.main
+            // Shared GameTest bodies — loaded on the gameTestServer run, not shipped in the jar.
+            sourceSet common.sourceSets.gametest
+            sourceSet sourceSets.gametest
+            // The screenshot driver — dev runs only, not shipped in the jar.
+            sourceSet common.sourceSets.uishots
+            sourceSet sourceSets.uishots
+        }
+    }
+}
+
+dependencies {
+    compileOnly project(':common')
+
+    gametestCompileOnly project(':common')
+    // The gametest delegators compile against the shared *Scenarios classes.
+    gametestCompileOnly common.sourceSets.gametest.output
+
+    uishotsCompileOnly project(':common')
+    uishotsCompileOnly common.sourceSets.uishots.output
+
+    // Critfall and GeckoLib consumed as published Modrinth artifacts; implementation puts them on the
+    // dev-run runtime classpath so FML loads them as mods in runClient/gameTestServer.
+    implementation "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
+    implementation "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
+
+    // Checks on the dev runs only, so the GameTests exercise the Checks path; never a compile dependency.
+    if (!withoutChecks) {
+        runtimeOnly checksArtifact('neoforge')
+    }
+    if (withInitiative) {
+        runtimeOnly initiativeArtifact('neoforge')
+    }
+}
+
+def wipeGameTestWorld = tasks.register('wipeGameTestWorld', Delete) {
+    delete new File(gameTestDir, 'world')
+}
+tasks.matching { it.name == 'runGameTestServer' }.configureEach { dependsOn wipeGameTestWorld }
+
+// A fresh world and no stale screenshots on every run.
+def wipeUiShots = tasks.register('wipeUiShots', Delete) {
+    delete new File(uiShotsDir, 'saves'), uiShotsOutput
+}
+tasks.matching { it.name == 'runUiShots' }.configureEach { dependsOn wipeUiShots }
+
+// Nothing in the build graph compiles the gametest or uishots source sets otherwise; keep `check` catching them.
+tasks.named('check') { dependsOn tasks.named('gametestClasses'), tasks.named('uishotsClasses') }
+
+// Bundle common's compiled classes into the NeoForge jar. Common's resources come through
+// processResources below (with property expansion) — bundling output too would duplicate them.
+jar {
+    from common.sourceSets.main.output.classesDirs
+}
+
+processResources {
+    from common.sourceSets.main.resources
+
+    def props = [
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+            mod_license            : mod_license,
+            mod_issue_tracker      : mod_issue_tracker,
+            minecraft_version_range: minecraft_version_range,
+            neoforge_version_range : neoforge_version_range,
+            critfall_version_range : critfall_version_range,
+            geckolib_version_range : geckolib_version_range,
+            checks_version_range   : checks_version_range,
+            initiative_version_range: initiative_version_range,
+    ]
+    inputs.properties props
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand props
+    }
+}

@@ -1,0 +1,52 @@
+{
+  "itemGroup.critfall_horseman": "Headless Horseman",
+
+  "entity.critfall_horseman.horseman": "The Headless Horseman",
+  "entity.critfall_horseman.gallows_steed": "Gallows Steed",
+  "entity.critfall_horseman.thrown_head": "The Horseman's Burning Head",
+
+  "item.critfall_horseman.executioners_sword": "Rusted Executioner's Sword",
+  "item.critfall_horseman.horseman_head": "The Horseman's Head",
+  "item.critfall_horseman.burning_head": "The Horseman's Burning Head",
+  "item.critfall_horseman.horseman_spawn_egg": "Headless Horseman Spawn Egg",
+  "item.critfall_horseman.gallows_steed_spawn_egg": "Gallows Steed Spawn Egg",
+
+  "hazard.critfall_horseman.charge": "The Horseman's charge",
+  "hazard.critfall_horseman.head_throw": "Line of fire",
+
+  "death.attack.critfall_horseman.trample": "%1$s was ridden down by the Headless Horseman",
+  "death.attack.critfall_horseman.trample.player": "%1$s was ridden down by the Headless Horseman while fighting %2$s",
+  "death.attack.critfall_horseman.head_fire": "%1$s burned in the Horseman's line of fire",
+  "death.attack.critfall_horseman.head_fire.player": "%1$s burned in the Horseman's line of fire while fighting %2$s",
+
+  "line.critfall_horseman.arrival.title": "I heard you.",
+  "line.critfall_horseman.arrival.subtitle": "Who calls out at midnight?",
+  "line.critfall_horseman.headless.title": "Catch.",
+  "line.critfall_horseman.headless.subtitle": "Burn with it.",
+  "line.critfall_horseman.chase.title": "I see you.",
+  "line.critfall_horseman.chase.subtitle": "Through my own eyes.",
+  "line.critfall_horseman.retake.title": "Whole again.",
+  "line.critfall_horseman.retake.subtitle": "Now, kneel.",
+  "line.critfall_horseman.steed.title": "On foot, then.",
+  "line.critfall_horseman.steed.subtitle": "The block is not far.",
+  "line.critfall_horseman.sunrise.title": "Dawn spares you.",
+  "line.critfall_horseman.sunrise.subtitle": "Not for long.",
+  "line.critfall_horseman.kill.title": "One more head.",
+  "line.critfall_horseman.kill.subtitle": "For the block.",
+
+  "subtitles.critfall_horseman.hoofbeats": "Hoofbeats in the dark",
+  "subtitles.critfall_horseman.laugh": "Horseman laughs",
+  "subtitles.critfall_horseman.growl": "Horseman growls",
+  "subtitles.critfall_horseman.roar": "Horseman roars",
+  "subtitles.critfall_horseman.scream": "Horseman screams",
+  "subtitles.critfall_horseman.steed_scream": "Gallows Steed screams",
+  "subtitles.critfall_horseman.steed_breath": "Gallows Steed snorts",
+  "subtitles.critfall_horseman.cackle": "Burning head cackles",
+  "subtitles.critfall_horseman.sword_fire": "Burning blade swings",
+  "subtitles.critfall_horseman.head_whoosh": "Burning head flies",
+  "subtitles.critfall_horseman.impact": "Rider tramples",
+  "subtitles.critfall_horseman.crumble": "Crumbles to ash",
+  "subtitles.critfall_horseman.fire_roar": "Fire roars",
+  "subtitles.critfall_horseman.sting": "A bell tolls",
+  "subtitles.critfall_horseman.hiss": "Burning head hisses out"
+}

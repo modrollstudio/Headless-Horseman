@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "critfall_horseman:item/horseman_head_top",
+    "front": "critfall_horseman:item/horseman_head_front",
+    "side": "critfall_horseman:item/horseman_head_side",
+    "particle": "critfall_horseman:item/horseman_head_side"
+  }
+}

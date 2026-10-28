@@ -1,0 +1,51 @@
+plugins {
+    id 'net.neoforged.moddev'
+}
+
+// Shared GameTest bodies (run on both loaders) live in their own source set so they ship in
+// neither the production common classes nor the unit-test set, mirroring Critfall's layout.
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+    // The dev-only screenshot run's driver (runUiShots on each loader): kept out of the jar like gametest.
+    uishots {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+// Vanilla Minecraft (Mojang mappings) without any loader — code here must stay loader-agnostic.
+neoForge {
+    neoFormVersion = neoform_version
+    addModdingDependenciesTo sourceSets.test
+    addModdingDependenciesTo sourceSets.gametest
+    addModdingDependenciesTo sourceSets.uishots
+}
+
+// Modrinth publishes no loader-agnostic `common` artifact, so the API comes from the NeoForge
+// release jar, which bundles `studio.modroll.critfall.api` under Mojang mappings. The Fabric jar
+// is intermediary-mapped and cannot serve this source set.
+// GeckoLib likewise: its NeoForge jar carries the loader-agnostic API under Mojang mappings.
+dependencies {
+    compileOnly "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
+    testImplementation "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
+    gametestCompileOnly "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
+    compileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
+    gametestCompileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
+    uishotsCompileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
+}
+
+processResources {
+    def props = [
+            mod_id         : mod_id,
+            mod_name       : mod_name,
+            mod_version    : mod_version,
+            mod_description: mod_description,
+    ]
+    inputs.properties props
+    filesMatching('pack.mcmeta') {
+        expand props
+    }
+}

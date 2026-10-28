@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "studio.modroll.horseman.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": ["client.FogRendererMixin", "client.GameRendererMixin"]
+}

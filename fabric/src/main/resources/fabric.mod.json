@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "license": "${mod_license}",
+  "icon": "logo.png",
+  "authors": ["NightsHigh", "Modroll Studio"],
+  "contact": {
+    "homepage": "https://modroll.studio",
+    "sources": "https://github.com/modrollstudio/Headless-Horseman",
+    "issues": "${mod_issue_tracker}"
+  },
+  "environment": "*",
+  "entrypoints": {
+    "main": ["studio.modroll.horseman.fabric.HorsemanFabric"],
+    "client": ["studio.modroll.horseman.fabric.client.HorsemanFabricClient"]
+  },
+  "mixins": ["critfall_horseman.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "${minecraft_version}",
+    "java": ">=21",
+    "fabric-api": "*",
+    "critfall": ">=${critfall_min_version}",
+    "geckolib": ">=${geckolib_min_version}"
+  },
+  "suggests": {
+    "checks": ">=${checks_min_version}",
+    "initiative": ">=${initiative_min_version}"
+  },
+  "breaks": {
+    "checks": "<${checks_min_version}",
+    "initiative": "<${initiative_min_version}"
+  }
+}

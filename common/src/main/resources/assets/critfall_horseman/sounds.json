@@ -1,0 +1,603 @@
+{
+  "laugh_1_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity/witch/ambient4",
+        "volume": 1.0,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.laugh"
+  },
+  "laugh_1_2": {
+    "sounds": [
+      {
+        "name": "minecraft:entity/witch/ambient4",
+        "volume": 0.5,
+        "pitch": 0.53
+      }
+    ]
+  },
+  "laugh_1_3": {
+    "sounds": [
+      {
+        "name": "minecraft:mob/evocation_illager/celebrate",
+        "volume": 0.75,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "laugh_1_4": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_burst",
+        "volume": 0.6,
+        "pitch": 0.9
+      }
+    ]
+  },
+  "laugh_2_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity/witch/celebrate",
+        "volume": 0.9,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.laugh"
+  },
+  "laugh_2_2": {
+    "sounds": [
+      {
+        "name": "minecraft:entity/witch/ambient4",
+        "volume": 0.8,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "laugh_2_3": {
+    "sounds": [
+      {
+        "name": "minecraft:mob/ravager/celebrate1",
+        "volume": 0.35,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "laugh_2_4": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_burst",
+        "volume": 0.5,
+        "pitch": 0.8
+      }
+    ]
+  },
+  "laugh_3_1": {
+    "sounds": [
+      {
+        "name": "minecraft:mob/evocation_illager/celebrate",
+        "volume": 1.0,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.laugh"
+  },
+  "laugh_3_2": {
+    "sounds": [
+      {
+        "name": "minecraft:mob/evocation_illager/celebrate",
+        "volume": 0.5,
+        "pitch": 0.53
+      }
+    ]
+  },
+  "laugh_3_3": {
+    "sounds": [
+      {
+        "name": "minecraft:entity/witch/ambient4",
+        "volume": 0.45,
+        "pitch": 0.55
+      }
+    ]
+  },
+  "laugh_3_4": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_burst",
+        "volume": 0.4,
+        "pitch": 1.1
+      }
+    ]
+  },
+  "growl_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.hoglin.angry",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.5
+      },
+      {
+        "name": "minecraft:entity.zoglin.angry",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.growl"
+  },
+  "growl_2": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin_brute.angry",
+        "type": "event",
+        "volume": 0.6,
+        "pitch": 0.6
+      }
+    ]
+  },
+  "roar_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.ravager.roar",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.7
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.roar"
+  },
+  "roar_2": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.warden.roar",
+        "type": "event",
+        "volume": 0.4,
+        "pitch": 0.7
+      }
+    ]
+  },
+  "roar_3": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_roar",
+        "volume": 1.0,
+        "pitch": 0.9
+      }
+    ]
+  },
+  "scream_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.ghast.death",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.6
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.scream"
+  },
+  "scream_2": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.witch.death",
+        "type": "event",
+        "volume": 0.6,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "scream_3": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_burst",
+        "volume": 0.6,
+        "pitch": 0.6
+      }
+    ]
+  },
+  "hoofbeats_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.horse.gallop",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.55
+      },
+      {
+        "name": "minecraft:entity.horse.gallop",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.hoofbeats"
+  },
+  "hoofbeats_2": {
+    "sounds": [
+      {
+        "name": "minecraft:block.basalt.step",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 0.5
+      },
+      {
+        "name": "minecraft:block.deepslate.step",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "steed_scream_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.horse.death",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.6
+      },
+      {
+        "name": "minecraft:entity.horse.angry",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.55
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.steed_scream"
+  },
+  "steed_scream_2": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.skeleton_horse.death",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 0.6
+      }
+    ]
+  },
+  "steed_scream_3": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.zombie_horse.death",
+        "type": "event",
+        "volume": 0.5,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "steed_breath_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.horse.breathe",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 0.6
+      },
+      {
+        "name": "minecraft:entity.skeleton_horse.ambient",
+        "type": "event",
+        "volume": 0.6,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.steed_breath"
+  },
+  "cackle_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity/witch/ambient4",
+        "volume": 0.9,
+        "pitch": 0.6
+      },
+      {
+        "name": "minecraft:entity/witch/celebrate",
+        "volume": 0.8,
+        "pitch": 0.65
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.cackle"
+  },
+  "cackle_2": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/crackle",
+        "volume": 0.7,
+        "pitch": 1.0
+      }
+    ]
+  },
+  "sword_fire_1": {
+    "sounds": [
+      {
+        "name": "minecraft:item.firecharge.use",
+        "type": "event",
+        "volume": 0.7,
+        "pitch": 0.7
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sword_fire"
+  },
+  "sword_fire_2": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_burst",
+        "volume": 0.5,
+        "pitch": 1.3
+      }
+    ]
+  },
+  "head_whoosh_1": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/whoosh",
+        "volume": 1.0,
+        "pitch": 1.0
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.head_whoosh"
+  },
+  "head_whoosh_2": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_roar",
+        "volume": 0.6,
+        "pitch": 1.2
+      }
+    ]
+  },
+  "impact_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.iron_golem.attack",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.7
+      },
+      {
+        "name": "minecraft:entity.player.attack.knockback",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.6
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.impact"
+  },
+  "impact_2": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.horse.land",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 0.6
+      }
+    ]
+  },
+  "crumble_1": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.blaze.death",
+        "type": "event",
+        "volume": 0.9,
+        "pitch": 0.5
+      },
+      {
+        "name": "minecraft:block.basalt.break",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.6
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.crumble"
+  },
+  "crumble_2": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/crackle",
+        "volume": 0.8,
+        "pitch": 0.7
+      }
+    ]
+  },
+  "fire_roar_1": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_roar",
+        "volume": 1.0,
+        "pitch": 1.0
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.fire_roar"
+  },
+  "hiss_1": {
+    "sounds": [
+      {
+        "name": "minecraft:block.fire.extinguish",
+        "type": "event",
+        "volume": 1.0,
+        "pitch": 0.7
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.hiss"
+  },
+  "hiss_2": {
+    "sounds": [
+      {
+        "name": "minecraft:block.lava.extinguish",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 0.6
+      }
+    ]
+  },
+  "sting_arrival_1": {
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/bell_use01",
+        "volume": 1.0,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sting"
+  },
+  "sting_arrival_2": {
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/resonate",
+        "volume": 0.6,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "sting_arrival_3": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/boom",
+        "volume": 1.0,
+        "pitch": 0.9
+      }
+    ]
+  },
+  "sting_headless_1": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_burst",
+        "volume": 1.0,
+        "pitch": 0.8
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sting"
+  },
+  "sting_headless_2": {
+    "sounds": [
+      {
+        "name": "minecraft:mob/ghast/fireball4",
+        "volume": 0.7,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "sting_headless_3": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/boom",
+        "volume": 0.6,
+        "pitch": 1.0
+      }
+    ]
+  },
+  "sting_chase_1": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/boom",
+        "volume": 0.9,
+        "pitch": 1.1
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sting"
+  },
+  "sting_chase_2": {
+    "sounds": [
+      {
+        "name": "minecraft:mob/guardian/curse",
+        "volume": 0.35,
+        "pitch": 0.5
+      }
+    ]
+  },
+  "sting_retake_1": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/fire_burst",
+        "volume": 0.9,
+        "pitch": 0.7
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sting"
+  },
+  "sting_retake_2": {
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/bell_use02",
+        "volume": 0.8,
+        "pitch": 0.6
+      }
+    ]
+  },
+  "sting_retake_3": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/boom",
+        "volume": 0.6,
+        "pitch": 0.9
+      }
+    ]
+  },
+  "sting_steed_1": {
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/bell_use02",
+        "volume": 0.9,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sting"
+  },
+  "sting_steed_2": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/boom",
+        "volume": 0.9,
+        "pitch": 0.8
+      }
+    ]
+  },
+  "sting_sunrise_1": {
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/bell_use01",
+        "volume": 0.9,
+        "pitch": 0.75
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sting"
+  },
+  "sting_sunrise_2": {
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/resonate",
+        "volume": 0.5,
+        "pitch": 0.75
+      }
+    ]
+  },
+  "sting_sunrise_3": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/whoosh",
+        "volume": 0.5,
+        "pitch": 0.8
+      }
+    ]
+  },
+  "sting_kill_1": {
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/bell_use01",
+        "volume": 1.0,
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.critfall_horseman.sting"
+  },
+  "sting_kill_2": {
+    "sounds": [
+      {
+        "name": "critfall_horseman:synth/boom",
+        "volume": 1.0,
+        "pitch": 0.8
+      }
+    ]
+  }
+}
