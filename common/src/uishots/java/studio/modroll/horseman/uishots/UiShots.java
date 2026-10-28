@@ -21,15 +21,16 @@ import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.phys.Vec3;
+import studio.modroll.horseman.client.HorsemanConfigScreen;
 import studio.modroll.horseman.entity.GallowsSteed;
 import studio.modroll.horseman.entity.Horseman;
 import studio.modroll.horseman.entity.HorsemanEntities;
 import studio.modroll.horseman.spawn.HorsemanSpawner;
 
 /**
- * Dev-only screenshot run ({@code ./gradlew :fabric:runUiShots}). Builds a small scene in a flat world at midnight,
- * stages the fight by calling the mod on the server thread, saves each shot to {@code critfall_horseman.uishots.dir}
- * and quits.
+ * Dev-only screenshot run ({@code ./gradlew :fabric:runUiShots}). Shoots the config screen from the title screen,
+ * then builds a small scene in a flat world at midnight, stages the fight by calling the mod on the server thread,
+ * saves each shot to {@code critfall_horseman.uishots.dir} and quits.
  */
 public final class UiShots {
 
@@ -69,6 +70,19 @@ public final class UiShots {
                         "the title screen",
                         () -> Minecraft.getInstance().getOverlay() == null && Minecraft.getInstance().screen != null)
                 .then(UiShots::quietOptions)
+                .then(() -> guiScale(2))
+                .then(() -> Minecraft.getInstance().setScreen(new HorsemanConfigScreen(new TitleScreen(), false)))
+                .waitTicks(10)
+                .then(() -> camera.save("config"))
+                .then(() ->
+                        Minecraft.getInstance().screen.mouseScrolled(Camera.WIDTH / 4.0, Camera.HEIGHT / 4.0, 0, -50))
+                .waitTicks(5)
+                .then(() -> camera.save("config_scrolled"))
+                .then(() -> Minecraft.getInstance().setScreen(new HorsemanConfigScreen(new TitleScreen(), true)))
+                .waitTicks(10)
+                .then(() -> camera.save("config_on_server"))
+                .then(() -> Minecraft.getInstance().setScreen(new TitleScreen()))
+                .then(() -> guiScale(0))
                 .then(UiShots::createWorld)
                 .waitFor(
                         "the world",
@@ -224,6 +238,12 @@ public final class UiShots {
         minecraft.options.gamma().set(1.0);
         minecraft.options.enableVsync().set(false);
         minecraft.getWindow().updateVsync(false);
+    }
+
+    private static void guiScale(int scale) {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.options.guiScale().set(scale);
+        minecraft.resizeDisplay();
     }
 
     private static void createWorld() {

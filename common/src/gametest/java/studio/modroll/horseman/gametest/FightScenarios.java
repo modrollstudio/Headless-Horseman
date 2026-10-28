@@ -4,6 +4,10 @@ import static studio.modroll.horseman.gametest.SmokeScenarios.expect;
 
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -38,6 +42,8 @@ import studio.modroll.critfall.api.ModifierProvider;
 import studio.modroll.critfall.api.event.CritfallEvents;
 import studio.modroll.critfall.api.event.HazardRollEvent;
 import studio.modroll.horseman.CritfallHorseman;
+import studio.modroll.horseman.config.ConfigEditor;
+import studio.modroll.horseman.config.ConfigSettings;
 import studio.modroll.horseman.config.HorsemanConfig;
 import studio.modroll.horseman.entity.GallowsSteed;
 import studio.modroll.horseman.entity.Horseman;
@@ -345,6 +351,52 @@ public final class FightScenarios {
         helper.succeed();
     }
 
+    /** What the config screen's Save does, writing the file through the editor and reloading, takes effect at once. */
+    public static void configSaveApplies(GameTestHelper helper) {
+        Path file = CritfallHorseman.configFile();
+        String before = read(file);
+        HorsemanConfig saved;
+        try {
+            ConfigEditor editor = ConfigEditor.server(file);
+            for (ConfigSettings.Setting setting : editor.settings()) {
+                if (setting.key().equals("natural_spawning") || setting.key().equals("boss_bar")) {
+                    editor.set(setting, "false");
+                }
+            }
+            editor.save(file);
+            CritfallHorseman.reloadConfig();
+            saved = CritfallHorseman.config();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            write(file, before);
+            CritfallHorseman.reloadConfig();
+        }
+        expect(helper, !saved.naturalSpawning() && !saved.bossBar(), "the saved values must be in use at once");
+        expect(helper, CritfallHorseman.config().naturalSpawning(), "restoring the file must turn it back on");
+        helper.succeed();
+    }
+
+    private static String read(Path file) {
+        try {
+            return Files.exists(file) ? Files.readString(file) : null;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static void write(Path file, String text) {
+        try {
+            if (text == null) {
+                Files.deleteIfExists(file);
+            } else {
+                Files.writeString(file, text);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     private static HorsemanConfig withHoofbeats(HorsemanConfig c, boolean hoofbeats) {
         return new HorsemanConfig(
                 c.enabled(),
@@ -364,9 +416,7 @@ public final class FightScenarios {
                 c.lines(),
                 hoofbeats,
                 c.drops(),
-                c.effects(),
-                c.fog(),
-                c.cameraShake());
+                c.effects());
     }
 
     private static HorsemanConfig allYear(HorsemanConfig c) {
@@ -388,9 +438,7 @@ public final class FightScenarios {
                 c.lines(),
                 c.hoofbeats(),
                 c.drops(),
-                c.effects(),
-                c.fog(),
-                c.cameraShake());
+                c.effects());
     }
 
     /** With AI on and a target behind a wall, he charges or throws; no block changes and no fire appears. */

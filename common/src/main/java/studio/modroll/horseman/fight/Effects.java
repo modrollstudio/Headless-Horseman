@@ -172,9 +172,9 @@ public final class Effects {
         burst(horseman, ParticleTypes.FLAME, at, 20, 0.8, 0.03);
     }
 
-    /** A ring of mist {@code radius} blocks around {@code centre}; uses the {@code fog} switch as well. */
+    /** A ring of mist {@code radius} blocks around {@code centre}. */
     public static void mistRing(ServerLevel level, Vec3 centre, double radius) {
-        if (!CritfallHorseman.config().effects() || !CritfallHorseman.config().fog()) {
+        if (!CritfallHorseman.config().effects()) {
             return;
         }
         for (int i = 0; i < 24; i++) {

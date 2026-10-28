@@ -3,8 +3,9 @@ package studio.modroll.horseman.config;
 import java.time.MonthDay;
 
 /**
- * Settings from {@code config/critfall_horseman/critfall_horseman.json}. See the README for what each switch does.
- * {@code effects}, {@code fog} and {@code cameraShake} are read on each client from its own copy of the file.
+ * Settings from {@code config/critfall_horseman/critfall_horseman.json}. On a server the server's file decides.
+ * {@code effects} covers the particle bursts the server sends; what only changes one player's screen is in
+ * {@link HorsemanClientConfig}.
  *
  * @param enabled master switch
  * @param seasonChance chance per midnight in season, 0 to 1
@@ -27,9 +28,7 @@ public record HorsemanConfig(
         boolean lines,
         boolean hoofbeats,
         boolean drops,
-        boolean effects,
-        boolean fog,
-        boolean cameraShake) {
+        boolean effects) {
 
     public static final HorsemanConfig DEFAULTS = new HorsemanConfig(
             true,
@@ -39,8 +38,6 @@ public record HorsemanConfig(
             MonthDay.of(10, 31),
             false,
             0.1,
-            true,
-            true,
             true,
             true,
             true,

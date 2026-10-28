@@ -37,6 +37,11 @@ public class FightGameTests implements FabricGameTest {
         FightScenarios.dateRules(helper);
     }
 
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = "horseman_config_save_applies", timeoutTicks = 100)
+    public void configSaveApplies(GameTestHelper helper) {
+        FightScenarios.configSaveApplies(helper);
+    }
+
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = "horseman_never_breaks_blocks", timeoutTicks = 400)
     public void neverBreaksBlocks(GameTestHelper helper) {
         FightScenarios.neverBreaksBlocks(helper);

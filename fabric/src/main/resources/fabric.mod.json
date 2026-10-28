@@ -15,7 +15,8 @@
   "environment": "*",
   "entrypoints": {
     "main": ["studio.modroll.horseman.fabric.HorsemanFabric"],
-    "client": ["studio.modroll.horseman.fabric.client.HorsemanFabricClient"]
+    "client": ["studio.modroll.horseman.fabric.client.HorsemanFabricClient"],
+    "modmenu": ["studio.modroll.horseman.fabric.client.HorsemanModMenu"]
   },
   "mixins": ["critfall_horseman.mixins.json"],
   "depends": {
@@ -28,7 +29,8 @@
   },
   "suggests": {
     "checks": ">=${checks_min_version}",
-    "initiative": ">=${initiative_min_version}"
+    "initiative": ">=${initiative_min_version}",
+    "modmenu": "*"
   },
   "breaks": {
     "checks": "<${checks_min_version}",

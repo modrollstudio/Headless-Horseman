@@ -303,7 +303,7 @@ public class Horseman extends Monster implements GeoEntity {
             if (isAlive()) {
                 serverTick(server);
             }
-        } else if (isAlive() && CritfallHorseman.config().effects()) {
+        } else if (isAlive() && CritfallHorseman.clientConfig().ambientParticles()) {
             clientEffects();
         }
     }

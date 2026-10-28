@@ -51,8 +51,6 @@ class HorsemanCalendarTest {
                 true,
                 true,
                 true,
-                true,
-                true,
                 true);
         assertTrue(HorsemanCalendar.comes(march, allYear, false, 0.05));
     }

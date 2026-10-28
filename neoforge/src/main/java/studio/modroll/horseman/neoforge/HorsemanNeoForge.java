@@ -4,6 +4,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLPaths;
@@ -21,13 +22,13 @@ import studio.modroll.horseman.spawn.HorsemanSpawner;
 @Mod(CritfallHorseman.MOD_ID)
 public final class HorsemanNeoForge {
 
-    public HorsemanNeoForge(IEventBus modBus) {
+    public HorsemanNeoForge(IEventBus modBus, ModContainer container) {
         CritfallHorseman.init(FMLPaths.CONFIGDIR.get());
         modBus.addListener(HorsemanNeoForge::onRegister);
         modBus.addListener(HorsemanNeoForge::onAttributes);
         NeoForge.EVENT_BUS.addListener(HorsemanNeoForge::onLevelTick);
         if (FMLEnvironment.dist.isClient()) {
-            HorsemanNeoForgeClient.init(modBus);
+            HorsemanNeoForgeClient.init(modBus, container);
         }
     }
 

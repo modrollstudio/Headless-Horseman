@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- An in-game config screen, opened from NeoForge's mod list or Mod Menu on Fabric. On a server it shows only your
+  own screen settings. Fog, camera shake and the smoke and embers around him moved to `critfall_horseman-client.json`,
+  so each player can turn them off on a server.
+
 ## 0.1.0
 
 First release, for Minecraft 1.21.1 on NeoForge and Fabric. Requires Critfall 0.2.17+ and GeckoLib 4.9.3+. Checks

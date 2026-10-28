@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 import studio.modroll.horseman.CritfallHorseman;
 
 /**
- * Reads the config file, writing the defaults if it is missing. Invalid values fall back to their default with a
+ * Reads the config files, writing the defaults if one is missing. Invalid values fall back to their default with a
  * warning; an unreadable file means all defaults. Dates are {@code MM-DD}.
  */
 public final class HorsemanConfigLoader {
@@ -39,9 +39,16 @@ public final class HorsemanConfigLoader {
               "lines": true,
               "hoofbeats": true,
               "drops": true,
-              "effects": true,
+              "effects": true
+            }
+            """;
+
+    public static final String DEFAULT_CLIENT_FILE = """
+            {
+              "format_version": 1,
               "fog": true,
-              "camera_shake": true
+              "camera_shake": true,
+              "ambient_particles": true
             }
             """;
 
@@ -64,29 +71,47 @@ public final class HorsemanConfigLoader {
             "lines",
             "hoofbeats",
             "drops",
-            "effects",
-            "fog",
-            "camera_shake");
+            "effects");
+
+    private static final Set<String> KNOWN_CLIENT_KEYS =
+            Set.of("format_version", "fog", "camera_shake", "ambient_particles");
 
     private HorsemanConfigLoader() {}
 
     public static HorsemanConfig load(Path file) {
+        JsonObject json = read(file, DEFAULT_FILE);
+        return json == null
+                ? HorsemanConfig.DEFAULTS
+                : parse(json, warning -> CritfallHorseman.LOG.warn("{}: {}", file, warning));
+    }
+
+    public static HorsemanClientConfig loadClient(Path file) {
+        JsonObject json = read(file, DEFAULT_CLIENT_FILE);
+        return json == null
+                ? HorsemanClientConfig.DEFAULTS
+                : parseClient(json, warning -> CritfallHorseman.LOG.warn("{}: {}", file, warning));
+    }
+
+    /** The file as JSON, written with {@code defaultFile} first if missing; null if it can't be read. */
+    private static JsonObject read(Path file, String defaultFile) {
         try {
             if (!Files.exists(file)) {
                 Files.createDirectories(file.getParent());
-                Files.writeString(file, DEFAULT_FILE);
+                Files.writeString(file, defaultFile);
             }
-            JsonObject json = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
-            return parse(json, warning -> CritfallHorseman.LOG.warn("{}: {}", file, warning));
+            return JsonParser.parseString(Files.readString(file)).getAsJsonObject();
         } catch (IOException | JsonParseException | IllegalStateException e) {
             CritfallHorseman.LOG.warn("Could not read {}, using the defaults: {}", file, e.getMessage());
-            return HorsemanConfig.DEFAULTS;
+            return null;
         }
     }
 
     public static HorsemanConfig parse(JsonObject json, Consumer<String> warn) {
         for (String key : json.keySet()) {
-            if (!KNOWN_KEYS.contains(key)) {
+            if (KNOWN_CLIENT_KEYS.contains(key) && !KNOWN_KEYS.contains(key)) {
+                // Before 0.1.1 these were in this file.
+                warn.accept("\"" + key + "\" is now set in critfall_horseman-client.json, ignored here");
+            } else if (!KNOWN_KEYS.contains(key)) {
                 warn.accept("unknown key \"" + key + "\" ignored");
             }
         }
@@ -109,9 +134,20 @@ public final class HorsemanConfigLoader {
                 bool(json, "lines", d.lines(), warn),
                 bool(json, "hoofbeats", d.hoofbeats(), warn),
                 bool(json, "drops", d.drops(), warn),
-                bool(json, "effects", d.effects(), warn),
+                bool(json, "effects", d.effects(), warn));
+    }
+
+    public static HorsemanClientConfig parseClient(JsonObject json, Consumer<String> warn) {
+        for (String key : json.keySet()) {
+            if (!KNOWN_CLIENT_KEYS.contains(key)) {
+                warn.accept("unknown key \"" + key + "\" ignored");
+            }
+        }
+        HorsemanClientConfig d = HorsemanClientConfig.DEFAULTS;
+        return new HorsemanClientConfig(
                 bool(json, "fog", d.fog(), warn),
-                bool(json, "camera_shake", d.cameraShake(), warn));
+                bool(json, "camera_shake", d.cameraShake(), warn),
+                bool(json, "ambient_particles", d.ambientParticles(), warn));
     }
 
     private static boolean bool(JsonObject json, String key, boolean fallback, Consumer<String> warn) {

@@ -67,6 +67,20 @@ class HorsemanConfigLoaderTest {
         assertEquals(HorsemanConfigLoader.DEFAULT_FILE, Files.readString(file));
     }
 
+    @Test
+    void fogAndCameraShakeAreReadFromTheClientFile() throws Exception {
+        List<String> warnings = new ArrayList<>();
+        HorsemanConfigLoader.parse(json("{\"fog\": false, \"camera_shake\": false}"), warnings::add);
+        assertEquals(2, warnings.size());
+        assertTrue(warnings.get(0).contains("critfall_horseman-client.json"), warnings.get(0));
+
+        Path file = dir.resolve("critfall_horseman").resolve("critfall_horseman-client.json");
+        assertEquals(HorsemanClientConfig.DEFAULTS, HorsemanConfigLoader.loadClient(file));
+        assertEquals(HorsemanConfigLoader.DEFAULT_CLIENT_FILE, Files.readString(file));
+        Files.writeString(file, "{\"camera_shake\": false}");
+        assertEquals(new HorsemanClientConfig(true, false, true), HorsemanConfigLoader.loadClient(file));
+    }
+
     private static JsonObject json(String text) {
         return JsonParser.parseString(text).getAsJsonObject();
     }

@@ -49,13 +49,12 @@ public final class Atmosphere {
                 charging = Math.min(charging, distance);
             }
         }
-        boolean effects = CritfallHorseman.config().effects();
-        float wanted = effects && CritfallHorseman.config().fog() && nearest < FOG_RANGE
+        float wanted = CritfallHorseman.clientConfig().fog() && nearest < FOG_RANGE
                 ? (float) Mth.clamp(1.0 - (nearest - FOG_FULL) / (FOG_RANGE - FOG_FULL), 0.0, 1.0)
                 : 0.0F;
         fogO = fog;
         fog += (wanted - fog) * 0.03F;
-        shake = effects && CritfallHorseman.config().cameraShake() && charging < SHAKE_RANGE
+        shake = CritfallHorseman.clientConfig().cameraShake() && charging < SHAKE_RANGE
                 ? (float) (1.0 - charging / SHAKE_RANGE)
                 : 0.0F;
     }

@@ -2,20 +2,27 @@ package studio.modroll.horseman.neoforge.client;
 
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
+import studio.modroll.horseman.CritfallHorseman;
 import studio.modroll.horseman.client.Atmosphere;
+import studio.modroll.horseman.client.HorsemanConfigScreen;
 import studio.modroll.horseman.client.HorsemanRenderer;
 import studio.modroll.horseman.client.SteedRenderer;
 import studio.modroll.horseman.entity.HorsemanEntities;
 
-/** Client-only setup: renderers, fog and camera shake. */
+/** Client-only setup: the client config, renderers, fog, camera shake and the mod list's config screen. */
 public final class HorsemanNeoForgeClient {
 
     private HorsemanNeoForgeClient() {}
 
-    public static void init(IEventBus modBus) {
+    public static void init(IEventBus modBus, ModContainer container) {
+        CritfallHorseman.initClient();
+        container.registerExtensionPoint(
+                IConfigScreenFactory.class, (mod, parent) -> HorsemanConfigScreen.forCurrentGame(parent));
         modBus.addListener(HorsemanNeoForgeClient::onRegisterRenderers);
         NeoForge.EVENT_BUS.addListener(HorsemanNeoForgeClient::onRenderFog);
         NeoForge.EVENT_BUS.addListener(HorsemanNeoForgeClient::onCameraAngles);

@@ -59,6 +59,10 @@ dependencies {
         modRuntimeOnly initiativeArtifact('fabric')
     }
 
+    // Optional: Mod Menu's mod list opens the config screen. Compiled against only; modLocalRuntime puts it on the
+    // dev runs (a client-only mod, so server runs skip it) and keeps it out of the jar and the published metadata.
+    modCompileOnly "maven.modrinth:modmenu:${modmenu_modrinth_id}"
+    modLocalRuntime "maven.modrinth:modmenu:${modmenu_modrinth_id}"
 }
 
 def gameTestDir = 'run-gametest'

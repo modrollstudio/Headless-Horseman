@@ -97,7 +97,7 @@ public class GallowsSteed extends Monster implements GeoEntity {
     @Override
     public void tick() {
         super.tick();
-        if (level().isClientSide && isAlive() && CritfallHorseman.config().effects()) {
+        if (level().isClientSide && isAlive() && CritfallHorseman.clientConfig().ambientParticles()) {
             hoofSparks();
             breathSmoke();
         }

@@ -17,7 +17,7 @@ dice. A headless rider on a black horse comes at midnight in October, with a rus
 Once on Halloween night and by chance on other October midnights, near a player under the open sky. He rides off at
 sunrise. Spawn eggs and `/summon critfall_horseman:horseman` also work.
 
-Everything is configurable in `config/critfall_horseman/critfall_horseman.json`.
+Everything is configurable in `config/critfall_horseman/critfall_horseman.json`, or in game from the mod list.
 
 ## Requirements
 
@@ -26,6 +26,7 @@ Everything is configurable in `config/critfall_horseman/critfall_horseman.json`.
 - [GeckoLib](https://modrinth.com/mod/geckolib) 4.9.3+
 - Optional: [Checks](https://github.com/modrollstudio/Checks) 0.1.3+, so saves use your character's Dexterity
 - Optional: [Initiative](https://github.com/modrollstudio/Initiative) 0.2.0+; he stays out of its encounters
+- Optional on Fabric: [Mod Menu](https://modrinth.com/mod/modmenu), to open the config screen from its mod list
 
 Stats, config keys, data pack files and the build tools are in [docs/reference.md](docs/reference.md).
 

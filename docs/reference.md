@@ -29,8 +29,15 @@ crits on 19–20.
 
 `config/critfall_horseman/critfall_horseman.json`, dates as `MM-DD`. Keys: `enabled` (master switch),
 `natural_spawning`, `halloween_night`, `season_start`, `season_end`, `all_year`, `season_chance`, `sunrise_exit`,
-`fire_damage`, `charge`, `head_throw`, `sweep`, `head_passing`, `boss_bar`, `lines`, `hoofbeats`, `drops`,
-`effects`, `fog`, `camera_shake`. The last three are read from each client's own file.
+`fire_damage`, `charge`, `head_throw`, `sweep`, `head_passing`, `boss_bar`, `lines`, `hoofbeats`, `drops`, `effects`.
+On a server the server's file decides.
+
+`config/critfall_horseman/critfall_horseman-client.json` holds `fog`, `camera_shake` and `ambient_particles` (the
+smoke, embers and fire trails around him), which only change your own screen. The server's `effects` covers the
+particle bursts every player sees.
+
+Both files can be edited in game from NeoForge's mod list or Mod Menu on Fabric; Save applies them at once. On a
+server the screen shows only the client file's settings.
 
 ## Data packs
 

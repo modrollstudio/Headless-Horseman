@@ -165,7 +165,7 @@ public class ThrownHead extends ThrowableItemProjectile {
 
     /** Client-side trail. His throws fill the whole path since the last tick, since the head moves fast. */
     private void trail() {
-        if (!CritfallHorseman.config().effects()) {
+        if (!CritfallHorseman.clientConfig().ambientParticles()) {
             return;
         }
         Vec3 now = position().add(0, 0.25, 0);
