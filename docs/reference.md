@@ -10,17 +10,18 @@ unless `all_year` is on. One at a time. He rides off at sunrise if still alive; 
 
 | | Health | AC | Attack | Saves | Damage |
 |---|---|---|---|---|---|
-| Headless Horseman | 150 | 15 | +9 | +3 | `2d4`, plus `1d4` fire while he has his head |
+| Headless Horseman | 150 | 15 | +5 | +3 | `2d4`, plus `1d4` fire while he has his head |
 | Gallows Steed | 80 | 13 | +5 | +2 | `1d6` |
 
-Both crit only on a natural 20. Sword reach is 4 blocks; anyone within 2.5 blocks or behind him for 3 seconds
-triggers a sweep (6 second cooldown). Charges every 8 seconds, attacks every 2, head throw 12 seconds after he takes
-the head back.
+Both crit only on a natural 20. His sword skips armor reduction: the attack roll against AC already counts the
+armor. His hazards and his steed's kicks are armor reduced. Sword reach is 4 blocks; anyone within 2.5 blocks or behind
+him for 3 seconds triggers a sweep (6 second cooldown). Charges every 8 seconds, attacks every 2, head throw 12 seconds
+after he takes the head back.
 
 | Hazard | Save | Damage | Hazard id |
 |---|---|---|---|
-| Charge | DEX DC 13 | `1d4+2`, half on a success; knocked down for 2.5 s on a failure | `critfall_horseman:charge` |
-| Line of fire | DEX DC 14 | `2d4+1` fire, half on a success | `critfall_horseman:head_throw` |
+| Charge | DEX DC 13 | `2d6+1`, half on a success; knocked down for 2.5 s on a failure | `critfall_horseman:charge` |
+| Line of fire | DEX DC 14 | `2d8+1` fire, half on a success | `critfall_horseman:head_throw` |
 
 Rusted Executioner's Sword: iron tier, 9 attack damage, 0.8 attacks per second, Critfall dice `2d6` plus modifier,
 crits on 19–20.
@@ -45,6 +46,7 @@ server the screen shows only the client file's settings.
   `critfall/item_profile/executioners_sword.json`.
 - `data/critfall_horseman/horseman_stats/horseman.json`: health, blade fire dice, and DC and damage of the charge and
   the line of fire. `gallows_steed.json`: the steed's health.
+- His sword deals `critfall_horseman:blade`, which is in `#minecraft:bypasses_armor`.
 - Both entities are in `#initiative:never_joins`. His lines are in the lang file.
 
 ## For other mods

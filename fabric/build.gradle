@@ -48,7 +48,7 @@ dependencies {
 
     // Critfall and GeckoLib consumed as published Modrinth artifacts (the intermediary-mapped release
     // jars); modImplementation has Loom remap them to named for dev runs and load them as mods.
-    modImplementation "maven.modrinth:critfall:${critfall_fabric_modrinth_id}"
+    modImplementation critfall('fabric')
     modImplementation "maven.modrinth:geckolib:${geckolib_fabric_modrinth_id}"
 
     // Checks on the dev runs only, so the GameTests exercise the Checks path; never a compile dependency.

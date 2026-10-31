@@ -4,6 +4,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -42,6 +43,8 @@ public final class HorsemanCombat {
 
     public static final ResourceKey<DamageType> TRAMPLE = damageType("trample");
     public static final ResourceKey<DamageType> HEAD_FIRE = damageType("head_fire");
+    /** His sword. In {@code #minecraft:bypasses_armor}: the attack roll against AC already counts the armor. */
+    public static final ResourceKey<DamageType> BLADE = damageType("blade");
 
     private HorsemanCombat() {}
 
@@ -60,11 +63,23 @@ public final class HorsemanCombat {
      * hit, because Initiative cancels non-driven damage between encounter participants. Returns whether it hit.
      */
     public static boolean swing(Horseman horseman, LivingEntity target) {
-        AttackContext context = AttackContext.melee(horseman.damageSources().mobAttack(horseman), ItemStack.EMPTY);
+        return RollService.performAttack(horseman, target, swordAttack(horseman))
+                .isHit();
+    }
+
+    /** The attack context of his next sword swing. */
+    public static AttackContext swordAttack(Horseman horseman) {
+        DamageSource blade = new DamageSource(
+                horseman.level()
+                        .registryAccess()
+                        .registryOrThrow(Registries.DAMAGE_TYPE)
+                        .getHolderOrThrow(BLADE),
+                horseman);
+        AttackContext context = AttackContext.melee(blade, ItemStack.EMPTY);
         if (!horseman.isHeadless() && CritfallHorseman.config().fireDamage()) {
             context = context.withDamageDice(burningSwordDice(horseman));
         }
-        return RollService.performAttack(horseman, target, context).isHit();
+        return context;
     }
 
     /** His profile's melee dice plus the blade fire dice. */

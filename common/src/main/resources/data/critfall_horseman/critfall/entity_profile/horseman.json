@@ -2,7 +2,7 @@
   "format_version": 1,
   "matches": ["critfall_horseman:horseman"],
   "armor_class": 15,
-  "attack_bonus": 9,
+  "attack_bonus": 5,
   "save_bonus": 3,
   "damage": { "melee": "2d4" },
   "crit_range": 20,
