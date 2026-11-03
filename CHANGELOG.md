@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.2 — unreleased
+## 0.1.2 — 2026-11-03
 
 Requires Critfall 0.2.18 or newer, where armor reduces damage again and gives half the AC it did.
 
