@@ -14,6 +14,8 @@
   "hazard.critfall_horseman.charge": "The Horseman's charge",
   "hazard.critfall_horseman.head_throw": "Line of fire",
 
+  "death.attack.critfall_horseman.blade": "%1$s was cut down by %2$s",
+  "death.attack.critfall_horseman.blade.item": "%1$s was cut down by %2$s using %3$s",
   "death.attack.critfall_horseman.trample": "%1$s was ridden down by the Headless Horseman",
   "death.attack.critfall_horseman.trample.player": "%1$s was ridden down by the Headless Horseman while fighting %2$s",
   "death.attack.critfall_horseman.head_fire": "%1$s burned in the Horseman's line of fire",

@@ -32,6 +32,25 @@ subprojects {
             url = 'https://cursemaven.com'
             content { includeGroup 'curse.maven' }
         }
+        // TEMPORARY, for an unreleased Critfall (see critfall_from_maven_local in gradle.properties):
+        // only Critfall's own artifacts are looked up in ~/.m2.
+        if (critfall_from_maven_local.toBoolean()) {
+            mavenLocal {
+                content {
+                    includeModule 'studio.modroll', 'critfall-neoforge'
+                    includeModule 'studio.modroll', 'critfall-fabric'
+                }
+            }
+        }
+    }
+
+    // Critfall's release jar for a loader: the Modrinth version pinned in gradle.properties, or, while
+    // critfall_from_maven_local is on, the critfall_version Critfall published to ~/.m2. Switching back to
+    // Modrinth is only a gradle.properties change.
+    ext.critfall = { String loader ->
+        critfall_from_maven_local.toBoolean()
+                ? "studio.modroll:critfall-${loader}:${critfall_version}"
+                : "maven.modrinth:critfall:${project.property("critfall_${loader}_modrinth_id")}"
     }
 
     // A loader's Checks jar: pinned by Modrinth version id like Critfall, or from CurseForge by its file id while that

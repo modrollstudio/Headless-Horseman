@@ -29,9 +29,9 @@ neoForge {
 // is intermediary-mapped and cannot serve this source set.
 // GeckoLib likewise: its NeoForge jar carries the loader-agnostic API under Mojang mappings.
 dependencies {
-    compileOnly "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
-    testImplementation "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
-    gametestCompileOnly "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
+    compileOnly critfall('neoforge')
+    testImplementation critfall('neoforge')
+    gametestCompileOnly critfall('neoforge')
     compileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
     gametestCompileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
     uishotsCompileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"

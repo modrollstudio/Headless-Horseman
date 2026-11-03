@@ -89,7 +89,7 @@ dependencies {
 
     // Critfall and GeckoLib consumed as published Modrinth artifacts; implementation puts them on the
     // dev-run runtime classpath so FML loads them as mods in runClient/gameTestServer.
-    implementation "maven.modrinth:critfall:${critfall_neoforge_modrinth_id}"
+    implementation critfall('neoforge')
     implementation "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
 
     // Checks on the dev runs only, so the GameTests exercise the Checks path; never a compile dependency.
