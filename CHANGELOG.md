@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.2 — 2026-11-03
+
+Requires Critfall 0.2.18 or newer, where armor reduces damage again and gives half the AC it did.
+
+- Retuned so he deals as much damage per attack in full iron as he did on Critfall 0.2.17. In full netherite his sword
+  does about two thirds of that, his charge and line of fire about half.
+- His sword skips armor reduction, as his attack roll against your AC already counts your armor. His attack bonus goes
+  from +9 to +5, so he still hits full iron 65% of the time.
+- Charge damage goes from `1d4+2` to `2d6+1`, line of fire from `2d4+1` to `2d8+1`. Armor reduces both.
+- His sword kills get their own death message.
+
 ## 0.1.1
 
 - An in-game config screen, opened from NeoForge's mod list or Mod Menu on Fabric. On a server it shows only your

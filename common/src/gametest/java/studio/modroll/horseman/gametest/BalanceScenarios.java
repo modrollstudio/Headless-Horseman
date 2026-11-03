@@ -12,16 +12,19 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 import studio.modroll.critfall.api.AttackContext;
 import studio.modroll.critfall.api.RollService;
 import studio.modroll.critfall.api.combat.AttackOutcome;
-import studio.modroll.critfall.api.combat.AttackResult;
 import studio.modroll.critfall.api.dice.DiceRoller;
 import studio.modroll.horseman.entity.GallowsSteed;
 import studio.modroll.horseman.entity.Horseman;
@@ -55,75 +58,123 @@ public final class BalanceScenarios {
     }
 
     /**
-     * Health lost by an unarmoured player on Normal, each within 1.5 of the target average: hit with head 7.5, crit 12,
-     * headless hit 5, line of fire 6, charge 4.5, steed 3.5. A natural 19 must not crit, and his attack bonus is +9.
+     * Health lost on Normal, with every die but the d20 at its average rounded down, in full iron and in full netherite.
+     * His sword skips armor reduction, as his attack roll against AC already counts the armor, so a hit costs the same
+     * in both: 6 with his head, 12 on a crit, 4 headless. His charge (7), line of fire (9) and his steed (3) are armor
+     * reduced. With his attack bonus of +5 a natural 8 hits AC 13 (iron) and a natural 13 hits AC 18 (netherite): in
+     * iron the 65% he had on Critfall 0.2.17. A natural 19 must not crit.
      */
     public static void damageWithinTargets(GameTestHelper helper) {
         Horseman horseman = FightScenarios.still(helper, new BlockPos(1, 2, 1));
         GallowsSteed steed = horseman.steed();
         List<ServerPlayer> players = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            players.add(FightScenarios.mockPlayer(helper, new Vec3(3.5, 1, 1.5), false));
+        for (Armor armor : Armor.values()) {
+            for (int i = 0; i < 8; i++) {
+                ServerPlayer player = FightScenarios.mockPlayer(helper, new Vec3(3.5, 1, 1.5), false);
+                for (int slot = 0; slot < ARMOR_SLOTS.length; slot++) {
+                    player.setItemSlot(ARMOR_SLOTS[slot], new ItemStack(armor.pieces[slot]));
+                }
+                players.add(player);
+            }
         }
         // New players are invulnerable for their first 60 ticks.
         helper.runAfterDelay(80, () -> {
             Map<String, Float> lost = new LinkedHashMap<>();
             Map<String, AttackOutcome> outcomes = new LinkedHashMap<>();
+            Map<String, Integer> armorClasses = new LinkedHashMap<>();
             Difficulty before = helper.getLevel().getDifficulty();
             helper.getLevel().getServer().setDifficulty(Difficulty.NORMAL, true);
             RollService.setRoller(new DiceRoller(new Held()));
             try {
                 int[] next = {0};
-                java.util.function.Function<String, ServerPlayer> fresh = name -> {
+                java.util.function.Supplier<ServerPlayer> fresh = () -> {
                     ServerPlayer player = players.get(next[0]++);
                     player.setHealth(20.0F);
                     player.removeAllEffects();
                     return player;
                 };
-                d20 = 15;
-                ServerPlayer hit = fresh.apply("hit");
-                outcomes.put("hit", swing(horseman, hit));
-                lost.put("hit", 20.0F - hit.getHealth());
-                d20 = 19;
-                ServerPlayer nineteen = fresh.apply("19");
-                outcomes.put("19", swing(horseman, nineteen));
-                d20 = 20;
-                ServerPlayer crit = fresh.apply("crit");
-                outcomes.put("crit", swing(horseman, crit));
-                lost.put("crit", 20.0F - crit.getHealth());
-                d20 = 15;
-                horseman.setHeadless(true);
-                ServerPlayer headless = fresh.apply("headless");
-                swing(horseman, headless);
-                lost.put("headless", 20.0F - headless.getHealth());
-                horseman.setHeadless(false);
-                d20 = 2;
-                ServerPlayer charged = fresh.apply("charge");
-                HorsemanCombat.trample(charged, steed);
-                lost.put("charge", 20.0F - charged.getHealth());
-                ServerPlayer burnt = fresh.apply("line of fire");
-                HorsemanCombat.burn(burnt);
-                lost.put("line of fire", 20.0F - burnt.getHealth());
-                d20 = 15;
-                ServerPlayer kicked = fresh.apply("steed");
-                RollService.performAttack(
-                        steed, kicked, AttackContext.melee(steed.damageSources().mobAttack(steed), ItemStack.EMPTY));
-                lost.put("steed", 20.0F - kicked.getHealth());
+                for (Armor armor : Armor.values()) {
+                    String a = armor.name + " ";
+                    players.subList(next[0], next[0] + 8).forEach(ServerPlayer::doTick);
+                    ServerPlayer first = players.get(next[0]);
+                    expect(
+                            helper,
+                            first.getArmorValue() == armor.points
+                                    && first.getAttributeValue(Attributes.ARMOR_TOUGHNESS) == armor.toughness,
+                            "full " + armor.name + " must give " + armor.points + " armor and " + armor.toughness
+                                    + " toughness, gave " + first.getArmorValue());
+                    armorClasses.put(
+                            armor.name, RollService.effectiveEntity(first).armorClass());
+                    d20 = armor.lowestHit - 1;
+                    ServerPlayer missed = fresh.get();
+                    outcomes.put(a + "natural " + d20, swing(horseman, missed));
+                    d20 = armor.lowestHit;
+                    ServerPlayer hit = fresh.get();
+                    outcomes.put(a + "natural " + d20, swing(horseman, hit));
+                    lost.put(a + "hit", 20.0F - hit.getHealth());
+                    d20 = 19;
+                    ServerPlayer nineteen = fresh.get();
+                    outcomes.put(a + "natural 19", swing(horseman, nineteen));
+                    d20 = 20;
+                    ServerPlayer crit = fresh.get();
+                    outcomes.put(a + "natural 20", swing(horseman, crit));
+                    lost.put(a + "crit", 20.0F - crit.getHealth());
+                    d20 = 15;
+                    horseman.setHeadless(true);
+                    ServerPlayer headless = fresh.get();
+                    swing(horseman, headless);
+                    lost.put(a + "headless", 20.0F - headless.getHealth());
+                    horseman.setHeadless(false);
+                    d20 = 2;
+                    ServerPlayer charged = fresh.get();
+                    HorsemanCombat.trample(charged, steed);
+                    lost.put(a + "charge", 20.0F - charged.getHealth());
+                    ServerPlayer burnt = fresh.get();
+                    HorsemanCombat.burn(burnt);
+                    lost.put(a + "line of fire", 20.0F - burnt.getHealth());
+                    d20 = 15;
+                    ServerPlayer kicked = fresh.get();
+                    RollService.performAttack(
+                            steed,
+                            kicked,
+                            AttackContext.melee(steed.damageSources().mobAttack(steed), ItemStack.EMPTY));
+                    lost.put(a + "steed", 20.0F - kicked.getHealth());
+                }
             } finally {
                 RollService.resetRoller();
                 d20 = 15;
                 helper.getLevel().getServer().setDifficulty(before, true);
             }
-            check(helper, lost, "hit", 7.5F);
-            check(helper, lost, "crit", 12.0F);
-            check(helper, lost, "headless", 5.0F);
-            check(helper, lost, "charge", 4.5F);
-            check(helper, lost, "line of fire", 6.0F);
-            check(helper, lost, "steed", 3.5F);
+            for (Armor armor : Armor.values()) {
+                String a = armor.name + " ";
+                check(helper, lost, a + "hit", 6.0F);
+                check(helper, lost, a + "crit", 12.0F);
+                check(helper, lost, a + "headless", 4.0F);
+                check(helper, lost, a + "charge", armor.charge);
+                check(helper, lost, a + "line of fire", armor.lineOfFire);
+                check(helper, lost, a + "steed", armor.steed);
+                int ac = armorClasses.get(armor.name);
+                expect(
+                        helper,
+                        ac == armor.armorClass,
+                        "full " + armor.name + " must be AC " + armor.armorClass + ", is " + ac);
+                expect(
+                        helper,
+                        outcomes.get(a + "natural " + (armor.lowestHit - 1)) == AttackOutcome.MISS
+                                && outcomes.get(a + "natural " + armor.lowestHit) == AttackOutcome.HIT,
+                        "against " + armor.name + " his lowest hit must be a natural " + armor.lowestHit + ", was "
+                                + outcomes);
+                expect(
+                        helper,
+                        outcomes.get(a + "natural 20") == AttackOutcome.CRIT,
+                        "a natural 20 must crit, was " + outcomes);
+                expect(
+                        helper,
+                        outcomes.get(a + "natural 19") == AttackOutcome.HIT,
+                        "a natural 19 must not crit, was " + outcomes);
+            }
             int bonus = RollService.effectiveEntity(horseman).attackBonus();
-            expect(helper, bonus == 9, "his attack bonus must be +9, is " + bonus);
-            expect(helper, outcomes.get("crit") == AttackOutcome.CRIT, "a natural 20 must crit, was " + outcomes);
-            expect(helper, outcomes.get("19") == AttackOutcome.HIT, "a natural 19 must not crit, was " + outcomes);
+            expect(helper, bonus == 5, "his attack bonus must be +5, is " + bonus);
             players.forEach(p -> helper.getLevel().getServer().getPlayerList().remove(p));
             steed.discard();
             horseman.discard();
@@ -131,21 +182,78 @@ public final class BalanceScenarios {
         });
     }
 
-    private static AttackOutcome swing(Horseman horseman, ServerPlayer target) {
-        AttackContext context = AttackContext.melee(horseman.damageSources().mobAttack(horseman), ItemStack.EMPTY);
-        if (!horseman.isHeadless()) {
-            context = context.withDamageDice(HorsemanCombat.burningSwordDice(horseman));
+    private static final EquipmentSlot[] ARMOR_SLOTS = {
+        EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+    };
+
+    /** Full sets, with Critfall 0.2.18's AC and vanilla's armor reduction of the held dice. */
+    private enum Armor {
+        IRON(
+                "iron",
+                new Item[] {Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},
+                15,
+                0,
+                13,
+                8,
+                3.78F,
+                5.22F,
+                1.38F),
+        NETHERITE(
+                "netherite",
+                new Item[] {
+                    Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS
+                },
+                20,
+                12,
+                18,
+                13,
+                1.79F,
+                2.45F,
+                0.67F);
+
+        final String name;
+        final Item[] pieces;
+        final int points;
+        final double toughness;
+        final int armorClass;
+        final int lowestHit;
+        final float charge;
+        final float lineOfFire;
+        final float steed;
+
+        Armor(
+                String name,
+                Item[] pieces,
+                int points,
+                double toughness,
+                int armorClass,
+                int lowestHit,
+                float charge,
+                float lineOfFire,
+                float steed) {
+            this.name = name;
+            this.pieces = pieces;
+            this.points = points;
+            this.toughness = toughness;
+            this.armorClass = armorClass;
+            this.lowestHit = lowestHit;
+            this.charge = charge;
+            this.lineOfFire = lineOfFire;
+            this.steed = steed;
         }
-        AttackResult result = RollService.performAttack(horseman, target, context);
-        return result.outcome();
     }
 
-    private static void check(GameTestHelper helper, Map<String, Float> lost, String what, float average) {
+    private static AttackOutcome swing(Horseman horseman, ServerPlayer target) {
+        return RollService.performAttack(horseman, target, HorsemanCombat.swordAttack(horseman))
+                .outcome();
+    }
+
+    private static void check(GameTestHelper helper, Map<String, Float> lost, String what, float expected) {
         float amount = lost.get(what);
         expect(
                 helper,
-                Math.abs(amount - average) <= 1.5F,
-                "his " + what + " must take about " + average + " health on Normal, took " + amount + " " + lost);
+                Math.abs(amount - expected) <= 0.05F,
+                "his " + what + " must take " + expected + " health on Normal, took " + amount + " " + lost);
     }
 
     /** Mounted reach covers 3.6 blocks behind him but not 5 blocks out; standing behind him triggers a sweep. */

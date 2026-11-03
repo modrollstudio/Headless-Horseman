@@ -37,7 +37,7 @@ public record HorsemanStats(
         DiceExpression headThrowDamage) {
 
     public static final HorsemanStats HORSEMAN = new HorsemanStats(
-            150.0, DiceExpression.parse("1d4"), 13, DiceExpression.parse("1d4+2"), 14, DiceExpression.parse("2d4+1"));
+            150.0, DiceExpression.parse("1d4"), 13, DiceExpression.parse("2d6+1"), 14, DiceExpression.parse("2d8+1"));
 
     /** Only the health is used for the steed. */
     public static final HorsemanStats STEED = new HorsemanStats(
