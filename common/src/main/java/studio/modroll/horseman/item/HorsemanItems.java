@@ -30,6 +30,12 @@ public final class HorsemanItems {
     public static final HorsemanHeadItem HORSEMAN_HEAD = new HorsemanHeadItem(
             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant());
 
+    public static final HangmansRopeItem HANGMANS_ROPE =
+            new HangmansRopeItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+
+    public static final HorsemansTreatsItem HORSEMANS_TREATS =
+            new HorsemansTreatsItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+
     /** Kept out of the creative tab: it only works while tied to a living Horseman. */
     public static final BurningHeadItem BURNING_HEAD = new BurningHeadItem(
             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant());
@@ -47,6 +53,8 @@ public final class HorsemanItems {
     public static void register(BiConsumer<ResourceLocation, Item> registrar) {
         add(registrar, "executioners_sword", EXECUTIONERS_SWORD);
         add(registrar, "horseman_head", HORSEMAN_HEAD);
+        add(registrar, "hangmans_rope", HANGMANS_ROPE);
+        add(registrar, "horsemans_treats", HORSEMANS_TREATS);
         registrar.accept(CritfallHorseman.id("burning_head"), BURNING_HEAD);
         add(registrar, "horseman_spawn_egg", HORSEMAN_SPAWN_EGG);
         add(registrar, "gallows_steed_spawn_egg", STEED_SPAWN_EGG);
@@ -66,6 +74,8 @@ public final class HorsemanItems {
     }
 
     public static void fillTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
-        TAB_ITEMS.forEach(output::accept);
+        for (Item item : TAB_ITEMS) {
+            output.accept(item == HORSEMAN_HEAD ? Lantern.litHead() : new ItemStack(item));
+        }
     }
 }
