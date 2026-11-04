@@ -2,6 +2,7 @@ package studio.modroll.horseman.gametest;
 
 import static studio.modroll.horseman.gametest.SmokeScenarios.expect;
 
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import java.io.IOException;
@@ -20,6 +21,8 @@ import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -45,6 +48,7 @@ import studio.modroll.horseman.CritfallHorseman;
 import studio.modroll.horseman.config.ConfigEditor;
 import studio.modroll.horseman.config.ConfigSettings;
 import studio.modroll.horseman.config.HorsemanConfig;
+import studio.modroll.horseman.config.HorsemanConfigLoader;
 import studio.modroll.horseman.entity.GallowsSteed;
 import studio.modroll.horseman.entity.Horseman;
 import studio.modroll.horseman.entity.HorsemanEntities;
@@ -52,6 +56,7 @@ import studio.modroll.horseman.fight.Head;
 import studio.modroll.horseman.fight.HorsemanCombat;
 import studio.modroll.horseman.fight.Lines;
 import studio.modroll.horseman.item.HorsemanItems;
+import studio.modroll.horseman.item.Lantern;
 import studio.modroll.horseman.spawn.HorsemanCalendar;
 import studio.modroll.horseman.spawn.HorsemanSavedData;
 import studio.modroll.horseman.spawn.HorsemanSpawner;
@@ -118,6 +123,15 @@ public final class FightScenarios {
         return false;
     }
 
+    /** The translation keys of the action bar messages each test player was sent, in order. */
+    static final Map<UUID, List<String>> ACTION_BAR = new HashMap<>();
+
+    /** The last action bar message {@code player} was sent, or null. */
+    static String lastActionBar(Player player) {
+        List<String> keys = ACTION_BAR.get(player.getUUID());
+        return keys == null || keys.isEmpty() ? null : keys.get(keys.size() - 1);
+    }
+
     /** He ignores creative players, but they can carry the head. */
     private static ServerPlayer playerAt(GameTestHelper helper, Vec3 at) {
         return mockPlayer(helper, at, true);
@@ -145,6 +159,16 @@ public final class FightScenarios {
                     @Override
                     public boolean isCreative() {
                         return creative;
+                    }
+
+                    @Override
+                    public void displayClientMessage(Component message, boolean actionBar) {
+                        super.displayClientMessage(message, actionBar);
+                        if (actionBar && message.getContents() instanceof TranslatableContents key) {
+                            ACTION_BAR
+                                    .computeIfAbsent(getUUID(), id -> new ArrayList<>())
+                                    .add(key.getKey());
+                        }
                     }
                 };
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
@@ -295,13 +319,18 @@ public final class FightScenarios {
                 .thenIdle(0);
     }
 
-    /** Date rules on a fixed clock, and that midnight picks a survival player under the sky. */
+    private static final String NO_HOOFBEATS = "{\"hoofbeats\": false}";
+
+    /**
+     * Date rules on a fixed clock, and that midnight picks a survival player under the sky. On Halloween he comes at
+     * every midnight, or with every_halloween_midnight off only at the first.
+     */
     public static void dateRules(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         HorsemanConfig defaults = HorsemanConfig.DEFAULTS;
         // midnight() refuses while any Horseman is alive, so clear leftovers from other tests.
         level.getEntities(HorsemanEntities.HORSEMAN, h -> true).forEach(h -> cleanUp(helper, h));
-        CritfallHorseman.useConfig(withHoofbeats(defaults, false));
+        CritfallHorseman.useConfig(config(NO_HOOFBEATS));
         HorsemanSpawner.clearArrivals();
         HorsemanSavedData.get(level).setLastHalloweenYear(0);
         ServerPlayer player = survivalPlayerAt(helper, new Vec3(3.5, 2, 3.5));
@@ -318,20 +347,23 @@ public final class FightScenarios {
                     !level.getEntities(HorsemanEntities.HORSEMAN, Horseman::isAlive)
                             .isEmpty());
             level.getEntities(HorsemanEntities.HORSEMAN, Horseman::isAlive).forEach(h -> cleanUp(helper, h));
-            CritfallHorseman.useConfig(withHoofbeats(defaults, false));
-            seen.put("halloween again", HorsemanSpawner.midnight(level, 0.0) != null);
+            CritfallHorseman.useConfig(config(NO_HOOFBEATS));
+            seen.put("halloween again", HorsemanSpawner.midnight(level, 0.99) == player);
             level.getEntities(HorsemanEntities.HORSEMAN, Horseman::isAlive).forEach(h -> cleanUp(helper, h));
-            CritfallHorseman.useConfig(withHoofbeats(defaults, false));
+            CritfallHorseman.useConfig(config("{\"hoofbeats\": false, \"every_halloween_midnight\": false}"));
+            seen.put("halloween again, once a year", HorsemanSpawner.midnight(level, 0.0) != null);
+            level.getEntities(HorsemanEntities.HORSEMAN, Horseman::isAlive).forEach(h -> cleanUp(helper, h));
+            CritfallHorseman.useConfig(config(NO_HOOFBEATS));
             night.accept("2026-10-15");
             seen.put("october lucky", HorsemanSpawner.midnight(level, 0.05) == player);
             level.getEntities(HorsemanEntities.HORSEMAN, Horseman::isAlive).forEach(h -> cleanUp(helper, h));
-            CritfallHorseman.useConfig(withHoofbeats(defaults, false));
+            CritfallHorseman.useConfig(config(NO_HOOFBEATS));
             seen.put("october unlucky", HorsemanSpawner.midnight(level, 0.5) != null);
             night.accept("2026-11-15");
             seen.put("november", HorsemanSpawner.midnight(level, 0.0) != null);
             seen.put(
                     "march, all year",
-                    HorsemanCalendar.comes(LocalDate.parse("2026-03-03"), allYear(defaults), false, 0.05));
+                    HorsemanCalendar.comes(LocalDate.parse("2026-03-03"), config("{\"all_year\": true}"), false, 0.05));
             seen.put("march", HorsemanCalendar.comes(LocalDate.parse("2026-03-03"), defaults, false, 0.0));
         } finally {
             HorsemanSpawner.useClock(Clock.systemDefaultZone());
@@ -341,7 +373,8 @@ public final class FightScenarios {
         Map<String, Boolean> expected = Map.of(
                 "halloween", true,
                 "halloween horseman", true,
-                "halloween again", false,
+                "halloween again", true,
+                "halloween again, once a year", false,
                 "october lucky", true,
                 "october unlucky", false,
                 "november", false,
@@ -397,48 +430,9 @@ public final class FightScenarios {
         }
     }
 
-    private static HorsemanConfig withHoofbeats(HorsemanConfig c, boolean hoofbeats) {
-        return new HorsemanConfig(
-                c.enabled(),
-                c.naturalSpawning(),
-                c.halloweenNight(),
-                c.seasonStart(),
-                c.seasonEnd(),
-                c.allYear(),
-                c.seasonChance(),
-                c.sunriseExit(),
-                c.fireDamage(),
-                c.charge(),
-                c.headThrow(),
-                c.sweep(),
-                c.headPassing(),
-                c.bossBar(),
-                c.lines(),
-                hoofbeats,
-                c.drops(),
-                c.effects());
-    }
-
-    private static HorsemanConfig allYear(HorsemanConfig c) {
-        return new HorsemanConfig(
-                c.enabled(),
-                c.naturalSpawning(),
-                c.halloweenNight(),
-                c.seasonStart(),
-                c.seasonEnd(),
-                true,
-                c.seasonChance(),
-                c.sunriseExit(),
-                c.fireDamage(),
-                c.charge(),
-                c.headThrow(),
-                c.sweep(),
-                c.headPassing(),
-                c.bossBar(),
-                c.lines(),
-                c.hoofbeats(),
-                c.drops(),
-                c.effects());
+    /** The defaults with {@code json}'s keys on top, as the config file would give them. */
+    static HorsemanConfig config(String json) {
+        return HorsemanConfigLoader.parse(JsonParser.parseString(json).getAsJsonObject(), warning -> {});
     }
 
     /** With AI on and a target behind a wall, he charges or throws; no block changes and no fire appears. */
@@ -488,7 +482,8 @@ public final class FightScenarios {
         });
     }
 
-    public static void dropsSwordAndHead(GameTestHelper helper) {
+    /** With no player helping, one set drops for anyone, and the head in it is lit. */
+    public static void dropsALitHead(GameTestHelper helper) {
         Horseman horseman = still(helper, new BlockPos(2, 2, 2));
         GallowsSteed steed = horseman.steed();
         horseman.kill();
@@ -499,12 +494,10 @@ public final class FightScenarios {
                                     ItemEntity.class, horseman.getBoundingBox().inflate(4.0));
                     expect(
                             helper,
-                            drops.stream().anyMatch(i -> i.getItem().is(HorsemanItems.EXECUTIONERS_SWORD)),
-                            "he must drop his sword");
-                    expect(
-                            helper,
-                            drops.stream().anyMatch(i -> i.getItem().is(HorsemanItems.HORSEMAN_HEAD)),
-                            "he must drop his head");
+                            drops.stream()
+                                    .anyMatch(i ->
+                                            i.getItem().is(HorsemanItems.HORSEMAN_HEAD) && Lantern.isLit(i.getItem())),
+                            "he must drop his head, lit");
                     expect(helper, steed == null || steed.isDeadOrDying(), "his steed must die with him");
                 })
                 .thenExecute(() -> {

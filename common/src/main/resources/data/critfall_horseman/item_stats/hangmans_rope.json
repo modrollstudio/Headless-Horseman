@@ -1,0 +1,7 @@
+{
+  "charges": 3,
+  "range": 16,
+  "radius": 1.5,
+  "dc": 13,
+  "hold_seconds": 3
+}

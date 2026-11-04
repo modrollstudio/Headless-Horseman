@@ -25,6 +25,7 @@ public final class HorsemanConfigLoader {
               "enabled": true,
               "natural_spawning": true,
               "halloween_night": "10-31",
+              "every_halloween_midnight": true,
               "season_start": "10-01",
               "season_end": "10-31",
               "all_year": false,
@@ -39,6 +40,10 @@ public final class HorsemanConfigLoader {
               "lines": true,
               "hoofbeats": true,
               "drops": true,
+              "lantern_light": true,
+              "lantern_breath": true,
+              "hangmans_rope": true,
+              "treats": true,
               "effects": true
             }
             """;
@@ -57,6 +62,7 @@ public final class HorsemanConfigLoader {
             "enabled",
             "natural_spawning",
             "halloween_night",
+            "every_halloween_midnight",
             "season_start",
             "season_end",
             "all_year",
@@ -71,6 +77,10 @@ public final class HorsemanConfigLoader {
             "lines",
             "hoofbeats",
             "drops",
+            "lantern_light",
+            "lantern_breath",
+            "hangmans_rope",
+            "treats",
             "effects");
 
     private static final Set<String> KNOWN_CLIENT_KEYS =
@@ -120,6 +130,7 @@ public final class HorsemanConfigLoader {
                 bool(json, "enabled", d.enabled(), warn),
                 bool(json, "natural_spawning", d.naturalSpawning(), warn),
                 date(json, "halloween_night", d.halloweenNight(), warn),
+                bool(json, "every_halloween_midnight", d.everyHalloweenMidnight(), warn),
                 date(json, "season_start", d.seasonStart(), warn),
                 date(json, "season_end", d.seasonEnd(), warn),
                 bool(json, "all_year", d.allYear(), warn),
@@ -134,6 +145,10 @@ public final class HorsemanConfigLoader {
                 bool(json, "lines", d.lines(), warn),
                 bool(json, "hoofbeats", d.hoofbeats(), warn),
                 bool(json, "drops", d.drops(), warn),
+                bool(json, "lantern_light", d.lanternLight(), warn),
+                bool(json, "lantern_breath", d.lanternBreath(), warn),
+                bool(json, "hangmans_rope", d.hangmansRope(), warn),
+                bool(json, "treats", d.treats(), warn),
                 bool(json, "effects", d.effects(), warn));
     }
 

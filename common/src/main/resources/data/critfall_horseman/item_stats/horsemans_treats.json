@@ -1,0 +1,10 @@
+{
+  "charges": 3,
+  "fright_seconds": 6,
+  "teleport_distance": 8,
+  "speed_seconds": 20,
+  "speed_level": 2,
+  "wraithwalk_seconds": 10,
+  "night_vision_seconds": 180,
+  "heal": "2d4+2"
+}

@@ -4,21 +4,35 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonParser;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import org.junit.jupiter.api.Test;
 import studio.modroll.horseman.config.HorsemanConfig;
+import studio.modroll.horseman.config.HorsemanConfigLoader;
 
 class HorsemanCalendarTest {
 
     private static final HorsemanConfig DEFAULTS = HorsemanConfig.DEFAULTS;
 
+    private static HorsemanConfig config(String json) {
+        return HorsemanConfigLoader.parse(JsonParser.parseString(json).getAsJsonObject(), warning -> {});
+    }
+
     @Test
-    void halloweenNightBringsHimOnceForCertain() {
+    void halloweenBringsHimAtEveryMidnight() {
         LocalDate halloween = LocalDate.of(2026, 10, 31);
         assertEquals(HorsemanCalendar.Night.HALLOWEEN, HorsemanCalendar.night(halloween, DEFAULTS));
         assertTrue(HorsemanCalendar.comes(halloween, DEFAULTS, false, 0.99));
-        assertFalse(HorsemanCalendar.comes(halloween, DEFAULTS, true, 0.0));
+        assertTrue(HorsemanCalendar.comes(halloween, DEFAULTS, true, 0.99));
+    }
+
+    @Test
+    void withEveryMidnightOffHalloweenBringsHimOnce() {
+        LocalDate halloween = LocalDate.of(2026, 10, 31);
+        HorsemanConfig once = config("{\"every_halloween_midnight\": false}");
+        assertTrue(HorsemanCalendar.comes(halloween, once, false, 0.99));
+        assertFalse(HorsemanCalendar.comes(halloween, once, true, 0.0));
     }
 
     @Test
@@ -33,25 +47,7 @@ class HorsemanCalendarTest {
     void outOfSeasonHeNeverComesUnlessAllYear() {
         LocalDate march = LocalDate.of(2026, 3, 3);
         assertFalse(HorsemanCalendar.comes(march, DEFAULTS, false, 0.0));
-        HorsemanConfig allYear = new HorsemanConfig(
-                true,
-                true,
-                MonthDay.of(10, 31),
-                MonthDay.of(10, 1),
-                MonthDay.of(10, 31),
-                true,
-                0.1,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true);
+        HorsemanConfig allYear = config("{\"all_year\": true}");
         assertTrue(HorsemanCalendar.comes(march, allYear, false, 0.05));
     }
 

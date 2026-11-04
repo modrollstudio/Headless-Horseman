@@ -9,7 +9,8 @@
   "entrypoints": {
     "fabric-gametest": [
       "studio.modroll.horseman.fabric.gametest.SmokeGameTests",
-      "studio.modroll.horseman.fabric.gametest.FightGameTests"
+      "studio.modroll.horseman.fabric.gametest.FightGameTests",
+      "studio.modroll.horseman.fabric.gametest.RewardGameTests"
     ]
   },
   "depends": {

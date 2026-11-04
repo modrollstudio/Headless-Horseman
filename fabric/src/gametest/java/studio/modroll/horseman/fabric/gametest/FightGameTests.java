@@ -47,9 +47,9 @@ public class FightGameTests implements FabricGameTest {
         FightScenarios.neverBreaksBlocks(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = "horseman_drops_sword_and_head", timeoutTicks = 200)
-    public void dropsSwordAndHead(GameTestHelper helper) {
-        FightScenarios.dropsSwordAndHead(helper);
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = "horseman_drops_a_lit_head", timeoutTicks = 200)
+    public void dropsALitHead(GameTestHelper helper) {
+        FightScenarios.dropsALitHead(helper);
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = "horseman_health_from_data", timeoutTicks = 100)
