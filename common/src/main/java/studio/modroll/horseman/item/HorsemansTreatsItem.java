@@ -1,6 +1,9 @@
 package studio.modroll.horseman.item;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -36,6 +39,13 @@ public class HorsemansTreatsItem extends Item {
     public static final DiceExpression D6 = DiceExpression.parse("1d6");
     public static final int EAT_TICKS = 24;
     private static final int TELEPORT_TRIES = 16;
+    /**
+     * How long a treat's message stays before the empty pouch's may replace it. Holding the use button eats on and on,
+     * so without this the last treat's message is overwritten at once.
+     */
+    public static final int MESSAGE_TICKS = 60;
+
+    private static final Map<UUID, Long> LAST_EATEN = new HashMap<>();
 
     public HorsemansTreatsItem(Properties properties) {
         super(properties);
@@ -56,7 +66,10 @@ public class HorsemansTreatsItem extends Item {
             return InteractionResultHolder.fail(stack);
         }
         if (level instanceof ServerLevel server && Charges.left(stack, server, charges(server)) <= 0) {
-            player.displayClientMessage(Component.translatable("item.critfall_horseman.charges.none"), true);
+            Long eaten = LAST_EATEN.get(player.getUUID());
+            if (eaten == null || server.getGameTime() - eaten >= MESSAGE_TICKS) {
+                player.displayClientMessage(Component.translatable("item.critfall_horseman.charges.none"), true);
+            }
             return InteractionResultHolder.fail(stack);
         }
         player.startUsingItem(hand);
@@ -79,6 +92,7 @@ public class HorsemansTreatsItem extends Item {
                 && eater instanceof ServerPlayer player
                 && Charges.spend(stack, server, charges(server))) {
             eat(player);
+            LAST_EATEN.put(player.getUUID(), server.getGameTime());
         }
         return stack;
     }
@@ -89,21 +103,21 @@ public class HorsemansTreatsItem extends Item {
         ItemStats stats = stats(player.serverLevel());
         switch (face) {
             case 1 -> {
-                player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, ticks(stats, "fright_seconds", 5.0)));
+                player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, ticks(stats, "fright_seconds", 6.0)));
                 HorsemanSounds.playTo(player, HorsemanSounds.LAUGH_2);
             }
             case 2 -> teleport(player, stats.integer("teleport_distance", 8, 1));
             case 3 ->
                 player.addEffect(new MobEffectInstance(
                         MobEffects.MOVEMENT_SPEED,
-                        ticks(stats, "speed_seconds", 8.0),
+                        ticks(stats, "speed_seconds", 20.0),
                         stats.integer("speed_level", 2, 1) - 1));
             case 4 ->
                 player.addEffect(
-                        new MobEffectInstance(HorsemanEffects.wraithwalk(), ticks(stats, "wraithwalk_seconds", 5.0)));
+                        new MobEffectInstance(HorsemanEffects.wraithwalk(), ticks(stats, "wraithwalk_seconds", 10.0)));
             case 5 ->
                 player.addEffect(
-                        new MobEffectInstance(MobEffects.NIGHT_VISION, ticks(stats, "night_vision_seconds", 60.0)));
+                        new MobEffectInstance(MobEffects.NIGHT_VISION, ticks(stats, "night_vision_seconds", 180.0)));
             default -> player.heal(RollService.roll(stats.dice("heal", "2d4+2")).total());
         }
         player.displayClientMessage(

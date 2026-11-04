@@ -17,9 +17,8 @@ his children. Then the town took his head on his own block, and now he rides at 
 
 ## Rewards
 
-Everyone who hurt him or his steed, or carried his head, gets their own drops where he dies, theirs alone for 2 minutes.
-Each always gets his head, and has a 25% chance of his sword, 25% of The Last Hangman's Rope and 50% of Horseman's
-Treats.
+He drops one set of rewards at his body for the party to share: his head, one of his sword, The Last Hangman's Rope or
+Horseman's Treats, equally likely, and a 25% chance of one more of the two that didn't drop.
 
 - The Horseman's Head is a lantern you wear. H lights it or puts it out, for dynamic light mods; once a day B breathes a
   cone of fire, a Dexterity save for half.

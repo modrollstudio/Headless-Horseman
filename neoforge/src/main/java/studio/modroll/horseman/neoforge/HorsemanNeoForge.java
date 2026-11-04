@@ -20,7 +20,6 @@ import studio.modroll.horseman.entity.HorsemanEntities;
 import studio.modroll.horseman.item.HorsemanItems;
 import studio.modroll.horseman.neoforge.client.HorsemanNeoForgeClient;
 import studio.modroll.horseman.network.LanternPayload;
-import studio.modroll.horseman.reward.Rewards;
 import studio.modroll.horseman.sound.HorsemanSounds;
 import studio.modroll.horseman.spawn.HorsemanSpawner;
 
@@ -57,7 +56,6 @@ public final class HorsemanNeoForge {
     private static void onLevelTick(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel level) {
             HorsemanSpawner.tick(level);
-            Rewards.tick(level);
         }
     }
 

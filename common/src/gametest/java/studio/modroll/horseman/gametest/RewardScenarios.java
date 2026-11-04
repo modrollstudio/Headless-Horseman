@@ -4,14 +4,17 @@ import static studio.modroll.horseman.gametest.SmokeScenarios.expect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.random.RandomGenerator;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -31,13 +34,13 @@ import studio.modroll.horseman.effect.HorsemanEffects;
 import studio.modroll.horseman.entity.GallowsRopes;
 import studio.modroll.horseman.entity.GallowsSteed;
 import studio.modroll.horseman.entity.Horseman;
-import studio.modroll.horseman.fight.Head;
 import studio.modroll.horseman.item.Charges;
 import studio.modroll.horseman.item.HangmansRopeItem;
 import studio.modroll.horseman.item.HorsemanItems;
+import studio.modroll.horseman.item.HorsemansTreatsItem;
 import studio.modroll.horseman.item.Lantern;
 import studio.modroll.horseman.network.LanternPayload;
-import studio.modroll.horseman.reward.LockedDrops;
+import studio.modroll.horseman.reward.Rewards;
 
 /** GameTest bodies for his rewards and their powers. Each runs in its own batch. */
 public final class RewardScenarios {
@@ -152,103 +155,43 @@ public final class RewardScenarios {
     }
 
     /**
-     * One player hits him and another carries his head; each gets their own head, locked to them, and a bystander can
-     * take nothing until the locks open.
+     * One set drops at his body when he dies, for anyone: exactly one head, lit, and one or two of the other three,
+     * never the same one twice. A player who never touched him picks them all up.
      */
-    public static void perPlayerRewards(GameTestHelper helper) {
+    public static void sharedDropsAtHisBody(GameTestHelper helper) {
         long dayTime = helper.getLevel().getDayTime();
         Horseman horseman = FightScenarios.still(helper, new BlockPos(2, 2, 2));
         GallowsSteed steed = horseman.steed();
-        ServerPlayer hitter = FightScenarios.mockPlayer(helper, new Vec3(4.5, 2, 2.5), false);
-        ServerPlayer carrier = FightScenarios.mockPlayer(helper, new Vec3(6.5, 2, 6.5), false);
         ServerPlayer bystander = FightScenarios.mockPlayer(helper, new Vec3(1.5, 2, 6.5), false);
         List<ItemEntity> drops = new ArrayList<>();
-        forceDice();
-        d20 = 20;
-        hitter.attack(horseman);
-        RollService.resetRoller();
-        horseman.throwHead(carrier.position().add(0, 1, 0));
+        horseman.kill();
         helper.startSequence()
-                .thenWaitUntil(() -> {
-                    for (ItemEntity head : helper.getLevel()
-                            .getEntitiesOfClass(
-                                    ItemEntity.class,
-                                    horseman.getBoundingBox().inflate(32.0),
-                                    i -> Head.isHeadOf(i.getItem(), horseman))) {
-                        head.setNoPickUpDelay();
-                        head.playerTouch(carrier);
-                    }
-                    expect(
-                            helper,
-                            horseman.helpers().contains(carrier.getUUID()),
-                            "carrying his head must count as helping");
-                })
-                .thenExecute(() -> {
-                    expect(
-                            helper,
-                            horseman.helpers().contains(hitter.getUUID()),
-                            "hitting him must count as helping, helpers " + horseman.helpers());
-                    expect(
-                            helper,
-                            !horseman.helpers().contains(bystander.getUUID()),
-                            "standing by must not count as helping");
-                    horseman.kill();
-                })
                 .thenWaitUntil(() -> {
                     drops.clear();
                     drops.addAll(helper.getLevel()
                             .getEntitiesOfClass(
-                                    ItemEntity.class, horseman.getBoundingBox().inflate(4.0), i -> i.getItem()
-                                            .is(HorsemanItems.HORSEMAN_HEAD)));
-                    expect(helper, drops.size() == 2, "each helper must get their own head, saw " + drops.size());
-                })
-                .thenExecute(() -> {
-                    List<ItemEntity> all = helper.getLevel()
-                            .getEntitiesOfClass(
                                     ItemEntity.class,
                                     horseman.getBoundingBox().inflate(4.0),
-                                    i -> !Head.isHeadOf(i.getItem(), horseman));
-                    touchAll(all, bystander);
-                    expect(
-                            helper,
-                            rewards(bystander) == 0,
-                            "a bystander must not pick up a helper's reward while it is locked");
-                    touchAll(all, hitter);
-                    touchAll(all, carrier);
-                    expect(
-                            helper,
-                            count(hitter, HorsemanItems.HORSEMAN_HEAD) == 1
-                                    && count(carrier, HorsemanItems.HORSEMAN_HEAD) == 1,
-                            "each helper must pick up exactly their own head");
-                    // Drop the hitter's head again and lock it with its time already up: the next unlock opens it.
-                    ItemStack head = ItemStack.EMPTY;
-                    for (int i = 0; i < hitter.getInventory().getContainerSize(); i++) {
-                        if (hitter.getInventory().getItem(i).is(HorsemanItems.HORSEMAN_HEAD)) {
-                            head = hitter.getInventory().removeItemNoUpdate(i);
-                        }
-                    }
-                    ItemEntity dropped = new ItemEntity(
-                            helper.getLevel(), bystander.getX(), bystander.getY(), bystander.getZ(), head);
-                    dropped.setTarget(hitter.getUUID());
-                    helper.getLevel().addFreshEntity(dropped);
-                    LockedDrops.get(helper.getLevel())
-                            .lock(dropped, helper.getLevel().getGameTime());
-                    drops.clear();
-                    drops.add(dropped);
+                                    i -> i.getItem().is(HorsemanItems.HORSEMAN_HEAD) || pick(i.getItem()) >= 0));
+                    expect(helper, drops.size() >= 2, "he must drop his head and at least one more, saw " + drops);
                 })
-                .thenWaitUntil(() -> {
+                .thenExecute(() -> {
+                    List<String> wrong = new ArrayList<>();
+                    picks(drops.stream().map(ItemEntity::getItem).toList(), wrong);
+                    expect(helper, wrong.isEmpty(), "his drops must follow their rules: " + wrong);
+                    expect(
+                            helper,
+                            drops.stream()
+                                    .filter(i -> i.getItem().is(HorsemanItems.HORSEMAN_HEAD))
+                                    .allMatch(i -> Lantern.isLit(i.getItem())),
+                            "his head must drop lit");
                     touchAll(drops, bystander);
                     expect(
                             helper,
-                            count(bystander, HorsemanItems.HORSEMAN_HEAD) == 1,
-                            "once its lock is up, anyone may pick up a reward");
-                })
-                .thenExecute(() -> {
-                    helper.getLevel()
-                            .getEntitiesOfClass(
-                                    ItemEntity.class, horseman.getBoundingBox().inflate(8.0))
-                            .forEach(Entity::discard);
-                    cleanUp(helper, dayTime, hitter, carrier, bystander, horseman, steed);
+                            rewards(bystander) == drops.size(),
+                            "anyone must be able to pick up his drops, picked up " + rewards(bystander) + " of "
+                                    + drops.size());
+                    cleanUp(helper, dayTime, bystander, horseman, steed);
                     helper.succeed();
                 })
                 .thenIdle(0);
@@ -358,7 +301,10 @@ public final class RewardScenarios {
         }
     }
 
-    /** Each face of Critfall's d6 gives its own effect; three treats a day, back at dawn. */
+    /**
+     * Each face of Critfall's d6 gives its own effect for as long as the data file says, and shows its own message;
+     * three treats a day, back at dawn.
+     */
     public static void treatsRollThroughCritfall(GameTestHelper helper) {
         long dayTime = helper.getLevel().getDayTime();
         ServerPlayer player = FightScenarios.mockPlayer(helper, new Vec3(2.5, 2, 2.5), false);
@@ -378,17 +324,22 @@ public final class RewardScenarios {
                 player.removeAllEffects();
                 player.setHealth(10.0F);
                 eat(player);
+                // Eating ticks the player, so a few ticks of each effect have already run.
                 boolean ok =
                         switch (d6) {
-                            case 1 -> player.hasEffect(MobEffects.DARKNESS);
+                            case 1 -> lasts(player, MobEffects.DARKNESS, 6);
                             case 2 -> player.position().distanceTo(from) > 1.0;
-                            case 3 -> player.hasEffect(MobEffects.MOVEMENT_SPEED);
-                            case 4 -> HorsemanEffects.passesThrough(player);
-                            case 5 -> player.hasEffect(MobEffects.NIGHT_VISION);
+                            case 3 -> lasts(player, MobEffects.MOVEMENT_SPEED, 20);
+                            case 4 -> lasts(player, HorsemanEffects.wraithwalk(), 10);
+                            case 5 -> lasts(player, MobEffects.NIGHT_VISION, 180);
                             default -> player.getHealth() >= 15.0F;
                         };
                 if (!ok) {
                     wrong.add("face " + d6);
+                }
+                String message = "item.critfall_horseman.horsemans_treats.rolled." + d6;
+                if (!message.equals(FightScenarios.lastActionBar(player))) {
+                    wrong.add("face " + d6 + " showed " + FightScenarios.lastActionBar(player));
                 }
             }
         } finally {
@@ -396,6 +347,125 @@ public final class RewardScenarios {
         }
         expect(helper, wrong.isEmpty(), "every face of the d6 must do its own thing, wrong: " + wrong);
         helper.succeed();
+    }
+
+    /** Has the effect, with at most 2 seconds of {@code seconds} gone. */
+    private static boolean lasts(ServerPlayer player, Holder<MobEffect> effect, int seconds) {
+        MobEffectInstance instance = player.getEffect(effect);
+        return instance != null
+                && instance.getDuration() <= seconds * 20
+                && instance.getDuration() >= (seconds - 2) * 20;
+    }
+
+    /**
+     * The last treat of the day shows what it did, even when the player holds the button and tries again at once; only
+     * a try after its message has had its time says the pouch is empty.
+     */
+    public static void lastTreatShowsItsMessage(GameTestHelper helper) {
+        long dayTime = helper.getLevel().getDayTime();
+        ServerPlayer player = FightScenarios.mockPlayer(helper, new Vec3(2.5, 2, 2.5), false);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(HorsemanItems.HORSEMANS_TREATS));
+        String rolled = "item.critfall_horseman.horsemans_treats.rolled.5";
+        String empty = "item.critfall_horseman.charges.none";
+        forceDice();
+        d6 = 5;
+        for (int i = 0; i < 3; i++) {
+            eat(player);
+        }
+        use(player);
+        RollService.resetRoller();
+        expect(
+                helper,
+                rolled.equals(FightScenarios.lastActionBar(player)),
+                "trying again at once, the last treat's message must stay, saw "
+                        + FightScenarios.lastActionBar(player));
+        helper.runAfterDelay(HorsemansTreatsItem.MESSAGE_TICKS + 1, () -> {
+            use(player);
+            String shown = FightScenarios.lastActionBar(player);
+            cleanUp(helper, dayTime, player);
+            expect(helper, empty.equals(shown), "a later try at an empty pouch must say so, saw " + shown);
+            helper.succeed();
+        });
+    }
+
+    /** The three he picks from. */
+    private static final Item[] PICKS = {
+        HorsemanItems.EXECUTIONERS_SWORD, HorsemanItems.HANGMANS_ROPE, HorsemanItems.HORSEMANS_TREATS
+    };
+
+    private static int pick(ItemStack stack) {
+        for (int i = 0; i < PICKS.length; i++) {
+            if (stack.is(PICKS[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Checks one set of rewards: his head, then one or two different picks. Returns the picks in order, or null and
+     * a line in {@code wrong} if the rewards break the rules.
+     */
+    private static int[] picks(List<ItemStack> stacks, List<String> wrong) {
+        List<Integer> picks = new ArrayList<>();
+        int heads = 0;
+        for (ItemStack stack : stacks) {
+            if (stack.is(HorsemanItems.HORSEMAN_HEAD)) {
+                heads++;
+            } else if (pick(stack) >= 0) {
+                picks.add(pick(stack));
+            } else {
+                wrong.add("an unexpected " + stack);
+            }
+        }
+        if (heads != 1
+                || picks.isEmpty()
+                || picks.size() > 2
+                || picks.size() == 2 && picks.get(0).equals(picks.get(1))) {
+            wrong.add("a kill dropped " + stacks);
+            return null;
+        }
+        return picks.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /**
+     * Thousands of rolls of his real reward tables, as his death rolls them: always exactly one head and one or two of
+     * the sword, the rope and the treats, never the same one twice; each is about a third of the first picks, the second
+     * comes about a quarter of the time, and falls about evenly on the two that didn't drop. The seeds are fixed, so
+     * the counts never change from run to run; the bounds are more than four standard deviations wide.
+     */
+    public static void rewardRates(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Random kills = new Random(20261031L);
+        List<String> wrong = new ArrayList<>();
+        int rolls = 4000;
+        int[] first = new int[PICKS.length];
+        int seconds = 0;
+        int secondIsNext = 0;
+        for (int k = 0; k < rolls && wrong.size() < 5; k++) {
+            int[] got = picks(Rewards.roll(level, kills.nextLong()), wrong);
+            if (got == null) {
+                continue;
+            }
+            first[got[0]]++;
+            if (got.length == 2) {
+                seconds++;
+                secondIsNext += got[1] == (got[0] + 1) % PICKS.length ? 1 : 0;
+            }
+        }
+        for (int i = 0; i < PICKS.length; i++) {
+            check(wrong, "first pick " + PICKS[i], first[i] / (double) rolls, 1.0 / 3, 0.03);
+        }
+        check(wrong, "a second pick", seconds / (double) rolls, 0.25, 0.03);
+        check(wrong, "of the second picks, the next of the other two", secondIsNext / (double) seconds, 0.5, 0.065);
+        expect(helper, wrong.isEmpty(), "his rewards must follow their rules and rates: " + wrong);
+        helper.succeed();
+    }
+
+    private static void check(List<String> wrong, String what, double rate, double chance, double within) {
+        if (Math.abs(rate - chance) > within) {
+            wrong.add(String.format("%s %.3f, expected %.3f", what, rate, chance));
+        }
     }
 
     /** Wraithwalk: neither pushed nor pushing. */

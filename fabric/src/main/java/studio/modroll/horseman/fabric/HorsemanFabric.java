@@ -14,7 +14,6 @@ import studio.modroll.horseman.effect.HorsemanEffects;
 import studio.modroll.horseman.entity.HorsemanEntities;
 import studio.modroll.horseman.item.HorsemanItems;
 import studio.modroll.horseman.network.LanternPayload;
-import studio.modroll.horseman.reward.Rewards;
 import studio.modroll.horseman.sound.HorsemanSounds;
 import studio.modroll.horseman.spawn.HorsemanSpawner;
 
@@ -31,7 +30,6 @@ public final class HorsemanFabric implements ModInitializer {
         Registry.register(BuiltInRegistries.MOB_EFFECT, HorsemanEffects.BOUND_ID, HorsemanEffects.BOUND);
         Registry.register(BuiltInRegistries.MOB_EFFECT, HorsemanEffects.WRAITHWALK_ID, HorsemanEffects.WRAITHWALK);
         ServerTickEvents.END_WORLD_TICK.register(HorsemanSpawner::tick);
-        ServerTickEvents.END_WORLD_TICK.register(Rewards::tick);
         PayloadTypeRegistry.playC2S().register(LanternPayload.TYPE, LanternPayload.STREAM_CODEC);
         ServerPlayNetworking.registerGlobalReceiver(
                 LanternPayload.TYPE, (payload, context) -> LanternPayload.handle(payload, context.player()));

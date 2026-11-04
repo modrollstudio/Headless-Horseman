@@ -33,7 +33,6 @@ public final class ConfigSettings {
             new Setting("sweep", Kind.TOGGLE, "fight"),
             new Setting("head_passing", Kind.TOGGLE, "fight"),
             new Setting("drops", Kind.TOGGLE, "rewards"),
-            new Setting("per_player_rewards", Kind.TOGGLE, "rewards"),
             new Setting("lantern_light", Kind.TOGGLE, "rewards"),
             new Setting("lantern_breath", Kind.TOGGLE, "rewards"),
             new Setting("hangmans_rope", Kind.TOGGLE, "rewards"),

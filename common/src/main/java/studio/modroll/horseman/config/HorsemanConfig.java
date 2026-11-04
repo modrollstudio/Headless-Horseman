@@ -10,7 +10,6 @@ import java.time.MonthDay;
  * @param enabled master switch
  * @param seasonChance chance per midnight in season, 0 to 1
  * @param everyHalloweenMidnight on Halloween he comes at every in game midnight, not only the first
- * @param perPlayerRewards each helper gets their own drops, locked to them for a while; off, one set for anyone
  */
 public record HorsemanConfig(
         boolean enabled,
@@ -31,7 +30,6 @@ public record HorsemanConfig(
         boolean lines,
         boolean hoofbeats,
         boolean drops,
-        boolean perPlayerRewards,
         boolean lanternLight,
         boolean lanternBreath,
         boolean hangmansRope,
@@ -47,7 +45,6 @@ public record HorsemanConfig(
             MonthDay.of(10, 31),
             false,
             0.1,
-            true,
             true,
             true,
             true,

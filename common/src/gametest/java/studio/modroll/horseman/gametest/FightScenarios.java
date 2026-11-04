@@ -21,6 +21,8 @@ import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -121,6 +123,15 @@ public final class FightScenarios {
         return false;
     }
 
+    /** The translation keys of the action bar messages each test player was sent, in order. */
+    static final Map<UUID, List<String>> ACTION_BAR = new HashMap<>();
+
+    /** The last action bar message {@code player} was sent, or null. */
+    static String lastActionBar(Player player) {
+        List<String> keys = ACTION_BAR.get(player.getUUID());
+        return keys == null || keys.isEmpty() ? null : keys.get(keys.size() - 1);
+    }
+
     /** He ignores creative players, but they can carry the head. */
     private static ServerPlayer playerAt(GameTestHelper helper, Vec3 at) {
         return mockPlayer(helper, at, true);
@@ -148,6 +159,16 @@ public final class FightScenarios {
                     @Override
                     public boolean isCreative() {
                         return creative;
+                    }
+
+                    @Override
+                    public void displayClientMessage(Component message, boolean actionBar) {
+                        super.displayClientMessage(message, actionBar);
+                        if (actionBar && message.getContents() instanceof TranslatableContents key) {
+                            ACTION_BAR
+                                    .computeIfAbsent(getUUID(), id -> new ArrayList<>())
+                                    .add(key.getKey());
+                        }
                     }
                 };
         Connection connection = new Connection(PacketFlow.SERVERBOUND);

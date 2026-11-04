@@ -146,13 +146,10 @@ public class GallowsSteed extends Monster implements GeoEntity {
         }
     }
 
-    /** Gives an idle rider the attacker as his target, and counts a player attacker as one of his helpers. */
+    /** Gives an idle rider the attacker as his target. */
     @Override
     public boolean hurt(DamageSource source, float amount) {
         boolean hurt = super.hurt(source, amount);
-        if (hurt && getFirstPassenger() instanceof Horseman rider) {
-            rider.helpedBy(source);
-        }
         if (hurt
                 && source.getEntity() instanceof LivingEntity attacker
                 && getFirstPassenger() instanceof Horseman rider

@@ -27,7 +27,7 @@ import studio.modroll.horseman.CritfallHorseman;
  * @param bladeFire dice added to his sword hits while he has his head
  * @param chargeDamage half on a successful save
  * @param headThrowDamage line of fire damage, half on a successful save
- * @param rewardLockSeconds how long each helper's rewards are theirs alone before anyone can pick them up
+ * @param secondRewardChance the chance, 0 to 1, of a second pick from {@code rewards/horseman_pick}
  */
 public record HorsemanStats(
         double maxHealth,
@@ -36,7 +36,7 @@ public record HorsemanStats(
         DiceExpression chargeDamage,
         int headThrowDc,
         DiceExpression headThrowDamage,
-        int rewardLockSeconds) {
+        double secondRewardChance) {
 
     public static final HorsemanStats HORSEMAN = new HorsemanStats(
             150.0,
@@ -45,7 +45,7 @@ public record HorsemanStats(
             DiceExpression.parse("2d6+1"),
             14,
             DiceExpression.parse("2d8+1"),
-            120);
+            0.25);
 
     /** Only the health is used for the steed. */
     public static final HorsemanStats STEED = new HorsemanStats(
@@ -55,7 +55,7 @@ public record HorsemanStats(
             HORSEMAN.chargeDamage,
             HORSEMAN.headThrowDc,
             HORSEMAN.headThrowDamage,
-            HORSEMAN.rewardLockSeconds);
+            HORSEMAN.secondRewardChance);
 
     private static ResourceManager cachedFrom;
     private static final Map<String, HorsemanStats> CACHE = new HashMap<>();
@@ -96,7 +96,13 @@ public record HorsemanStats(
                 value(file, charge, "damage", d.chargeDamage, e -> DiceExpression.parse(e.getAsString()), x -> true),
                 value(file, thrown, "dc", d.headThrowDc, JsonElement::getAsInt, dc -> dc >= 1),
                 value(file, thrown, "damage", d.headThrowDamage, e -> DiceExpression.parse(e.getAsString()), x -> true),
-                value(file, json, "reward_lock_seconds", d.rewardLockSeconds, JsonElement::getAsInt, s -> s >= 0));
+                value(
+                        file,
+                        json,
+                        "second_reward_chance",
+                        d.secondRewardChance,
+                        JsonElement::getAsDouble,
+                        c -> c >= 0 && c <= 1));
     }
 
     private static <T> T value(

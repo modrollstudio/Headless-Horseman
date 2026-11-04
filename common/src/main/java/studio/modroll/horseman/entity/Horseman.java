@@ -5,7 +5,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,9 +12,6 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -197,8 +193,6 @@ public class Horseman extends Monster implements GeoEntity {
     private final Map<Lines.Line, Integer> lastSaid = new EnumMap<>(Lines.Line.class);
     private boolean arrivedAtNight;
     private int exitTicks = -1;
-    /** Players who damaged him or his steed, or carried his head: each gets their own rewards. */
-    private final Set<UUID> helpers = new LinkedHashSet<>();
 
     public Horseman(EntityType<? extends Horseman> type, Level level) {
         super(type, level);
@@ -662,7 +656,6 @@ public class Horseman extends Monster implements GeoEntity {
         headMissingTicks = 0;
         ServerPlayer carrier = whereabouts.carrier();
         if (carrier != null) {
-            helpers.add(carrier.getUUID());
             if (!carrier.getUUID().equals(lastCarrier)) {
                 lastCarrier = carrier.getUUID();
                 say(Lines.Line.CHASE);
@@ -840,30 +833,10 @@ public class Horseman extends Monster implements GeoEntity {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        boolean hurt = super.hurt(source, amount);
-        if (hurt) {
-            helpedBy(source);
-        }
-        return hurt;
-    }
-
-    /** Counts the player behind {@code source}, if any, as a helper. His steed calls this too. */
-    public void helpedBy(DamageSource source) {
-        if (source.getEntity() instanceof ServerPlayer player && !player.isSpectator()) {
-            helpers.add(player.getUUID());
-        }
-    }
-
-    public Set<UUID> helpers() {
-        return Set.copyOf(helpers);
-    }
-
-    @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
         super.dropCustomDeathLoot(level, source, recentlyHit);
         if (CritfallHorseman.config().drops()) {
-            Rewards.drop(level, position(), helpers, random.nextLong());
+            Rewards.drop(level, position(), random.nextLong());
         }
     }
 
@@ -912,9 +885,6 @@ public class Horseman extends Monster implements GeoEntity {
         tag.putInt("HeadGeneration", headGeneration);
         tag.putBoolean("ArrivedAtNight", arrivedAtNight);
         tag.putInt("ThrowCooldown", throwCooldown);
-        ListTag helped = new ListTag();
-        helpers.forEach(uuid -> helped.add(NbtUtils.createUUID(uuid)));
-        tag.put("Helpers", helped);
     }
 
     @Override
@@ -924,10 +894,6 @@ public class Horseman extends Monster implements GeoEntity {
         headGeneration = tag.getInt("HeadGeneration");
         arrivedAtNight = tag.getBoolean("ArrivedAtNight");
         throwCooldown = tag.getInt("ThrowCooldown");
-        helpers.clear();
-        for (Tag uuid : tag.getList("Helpers", Tag.TAG_INT_ARRAY)) {
-            helpers.add(NbtUtils.loadUUID(uuid));
-        }
     }
 
     /** Ambient particles: neck smoke, embers, the head's flame, and the charge trail. */

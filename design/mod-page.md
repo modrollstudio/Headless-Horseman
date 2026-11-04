@@ -16,8 +16,8 @@ his children. Then the town took his head on his own block, and now he rides at 
 - Kill his steed and he fights on foot, without charges.
 - If he is still alive at sunrise, he rides off.
 
-Everyone who helped kill him gets their own drops: his head, a lantern you wear that breathes fire once a day, and a
-chance of his sword, The Last Hangman's Rope and Horseman's Treats.
+He drops his head, a lantern you wear that breathes fire once a day, and one or two of his sword, The Last Hangman's
+Rope and Horseman's Treats, for the party to share.
 
 ## Spawning
 
