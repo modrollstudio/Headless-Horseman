@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.0 — 2026-10-20
+
+Requires Critfall 0.2.19 or newer.
+
+- Rewards for every helper: each player who hurt him or his steed, or carried his head, rolls the loot table
+  `rewards/horseman` on their own. The drops are theirs alone for 2 minutes (`reward_lock_seconds`), then anyone's.
+  Each helper always gets his head; the sword is 25%, The Last Hangman's Rope 25% and Horseman's Treats 50%.
+- The Horseman's Head is a lantern when worn. H switches its light (in `#critfall_depths:carried_light`, and lit for
+  dynamic light mods; no light block is ever placed). Once a day B breathes a cone of fire: a DEX save through
+  Critfall for half, hazard id `critfall_horseman:lantern_breath`, credited to the player.
+- The Last Hangman's Rope: three charges a day. Ropes burst from the ground where you aim; a STR save through
+  Critfall (`critfall_horseman:hangmans_rope`), or Bound in place for 3 seconds.
+- Horseman's Treats: three a day. Critfall rolls a d6 for each: darkness and his laugh, a short teleport, Speed II,
+  Wraithwalk (pass through creatures), night vision, or `2d4+2` healing.
+- Charges come back at the next in game dawn. The rewards' numbers are in `item_stats/`.
+- On Halloween he comes at every in game midnight, not only the first (`every_halloween_midnight`).
+- New config keys: `every_halloween_midnight`, `per_player_rewards`, `lantern_light`, `lantern_breath`,
+  `hangmans_rope` and `treats`, all on by default.
+
 ## 0.1.2 — 2026-11-03
 
 Requires Critfall 0.2.18 or newer, where armor reduces damage again and gives half the AC it did.

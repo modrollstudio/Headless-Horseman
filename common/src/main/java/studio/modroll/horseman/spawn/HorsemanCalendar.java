@@ -5,8 +5,9 @@ import java.time.MonthDay;
 import studio.modroll.horseman.config.HorsemanConfig;
 
 /**
- * Date rules, using the server's real date: once on Halloween night for certain, by chance at each midnight during the
- * rest of the season, and never otherwise unless {@code all_year} is on.
+ * Date rules, using the server's real date: on Halloween for certain, at every in game midnight or (with {@code
+ * every_halloween_midnight} off) only the first, by chance at each midnight during the rest of the season, and never
+ * otherwise unless {@code all_year} is on.
  */
 public final class HorsemanCalendar {
 
@@ -32,7 +33,7 @@ public final class HorsemanCalendar {
     /** {@code roll} is a random number from 0 to 1, compared against the season chance. */
     public static boolean comes(LocalDate date, HorsemanConfig config, boolean cameThisHalloween, double roll) {
         return switch (night(date, config)) {
-            case HALLOWEEN -> !cameThisHalloween;
+            case HALLOWEEN -> config.everyHalloweenMidnight() || !cameThisHalloween;
             case SEASON -> roll < config.seasonChance();
             case NONE -> false;
         };

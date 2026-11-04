@@ -50,9 +50,9 @@ public class FightGameTests {
         FightScenarios.neverBreaksBlocks(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = "horseman_drops_sword_and_head", timeoutTicks = 200)
-    public void dropsSwordAndHead(GameTestHelper helper) {
-        FightScenarios.dropsSwordAndHead(helper);
+    @GameTest(template = TEMPLATE, batch = "horseman_drops_a_lit_head", timeoutTicks = 200)
+    public void dropsALitHead(GameTestHelper helper) {
+        FightScenarios.dropsALitHead(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = "horseman_health_from_data", timeoutTicks = 100)

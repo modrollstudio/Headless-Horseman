@@ -3,6 +3,9 @@
 A Halloween boss for Critfall. On October nights at midnight, a headless rider on a black horse may come for a player
 standing under the open sky. He carries a rusted sword and his own burning jack o' lantern head.
 
+Before he was an executioner's ghost, he was a father. He was the town's headsman, and in the evenings he made sweets for
+his children. Then the town took his head on his own block, and now he rides at midnight with it burning in his hand.
+
 ## The fight
 
 - His sword hits add fire damage. Every attack is a Critfall roll.
@@ -13,11 +16,12 @@ standing under the open sky. He carries a rusted sword and his own burning jack 
 - Kill his steed and he fights on foot, without charges.
 - If he is still alive at sunrise, he rides off.
 
-He drops the Rusted Executioner's Sword and The Horseman's Head, which you can wear.
+Everyone who helped kill him gets their own drops: his head, a lantern you wear that breathes fire once a day, and a
+chance of his sword, The Last Hangman's Rope and Horseman's Treats.
 
 ## Spawning
 
-He comes once on Halloween night (31 October) and has a 10% chance at each midnight during the rest of October. The
+He comes at every midnight on Halloween (31 October) and has a 10% chance at each midnight during the rest of October. The
 dates, the chance, and all-year spawning can be changed in the config. Spawn eggs and `/summon` work too.
 
 Every feature can be turned off in the config. He never breaks blocks.

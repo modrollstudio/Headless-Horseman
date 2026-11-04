@@ -27,6 +27,7 @@ import studio.modroll.horseman.CritfallHorseman;
  * @param bladeFire dice added to his sword hits while he has his head
  * @param chargeDamage half on a successful save
  * @param headThrowDamage line of fire damage, half on a successful save
+ * @param rewardLockSeconds how long each helper's rewards are theirs alone before anyone can pick them up
  */
 public record HorsemanStats(
         double maxHealth,
@@ -34,10 +35,17 @@ public record HorsemanStats(
         int chargeDc,
         DiceExpression chargeDamage,
         int headThrowDc,
-        DiceExpression headThrowDamage) {
+        DiceExpression headThrowDamage,
+        int rewardLockSeconds) {
 
     public static final HorsemanStats HORSEMAN = new HorsemanStats(
-            150.0, DiceExpression.parse("1d4"), 13, DiceExpression.parse("2d6+1"), 14, DiceExpression.parse("2d8+1"));
+            150.0,
+            DiceExpression.parse("1d4"),
+            13,
+            DiceExpression.parse("2d6+1"),
+            14,
+            DiceExpression.parse("2d8+1"),
+            120);
 
     /** Only the health is used for the steed. */
     public static final HorsemanStats STEED = new HorsemanStats(
@@ -46,7 +54,8 @@ public record HorsemanStats(
             HORSEMAN.chargeDc,
             HORSEMAN.chargeDamage,
             HORSEMAN.headThrowDc,
-            HORSEMAN.headThrowDamage);
+            HORSEMAN.headThrowDamage,
+            HORSEMAN.rewardLockSeconds);
 
     private static ResourceManager cachedFrom;
     private static final Map<String, HorsemanStats> CACHE = new HashMap<>();
@@ -86,13 +95,8 @@ public record HorsemanStats(
                 value(file, charge, "dc", d.chargeDc, JsonElement::getAsInt, dc -> dc >= 1),
                 value(file, charge, "damage", d.chargeDamage, e -> DiceExpression.parse(e.getAsString()), x -> true),
                 value(file, thrown, "dc", d.headThrowDc, JsonElement::getAsInt, dc -> dc >= 1),
-                value(
-                        file,
-                        thrown,
-                        "damage",
-                        d.headThrowDamage,
-                        e -> DiceExpression.parse(e.getAsString()),
-                        x -> true));
+                value(file, thrown, "damage", d.headThrowDamage, e -> DiceExpression.parse(e.getAsString()), x -> true),
+                value(file, json, "reward_lock_seconds", d.rewardLockSeconds, JsonElement::getAsInt, s -> s >= 0));
     }
 
     private static <T> T value(

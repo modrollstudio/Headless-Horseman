@@ -5,5 +5,13 @@
     "front": "critfall_horseman:item/horseman_head_front",
     "side": "critfall_horseman:item/horseman_head_side",
     "particle": "critfall_horseman:item/horseman_head_side"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "critfall_horseman:unlit": 1
+      },
+      "model": "critfall_horseman:item/horseman_head_unlit"
+    }
+  ]
 }

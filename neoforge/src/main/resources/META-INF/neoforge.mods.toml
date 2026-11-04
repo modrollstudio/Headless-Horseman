@@ -12,6 +12,9 @@ authors = "${mod_authors}"
 displayURL = "https://modroll.studio"
 logoFile = "logo.png"
 
+[[mixins]]
+config = "critfall_horseman.mixins.json"
+
 [[dependencies.${mod_id}]]
 modId = "critfall"
 type = "required"
