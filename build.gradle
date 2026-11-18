@@ -26,7 +26,7 @@ subprojects {
             url = 'https://api.modrinth.com/maven'
             content { includeGroup 'maven.modrinth' }
         }
-        // Initiative and Checks, which have no Modrinth versions; see initiativeArtifact and checksArtifact below.
+        // Initiative and Checks, which are only on CurseForge; see initiativeArtifact and checksArtifact below.
         maven {
             name = 'CurseMaven'
             url = 'https://cursemaven.com'
@@ -53,13 +53,9 @@ subprojects {
                 : "maven.modrinth:critfall:${project.property("critfall_${loader}_modrinth_id")}"
     }
 
-    // A loader's Checks jar: pinned by Modrinth version id like Critfall, or from CurseForge by its file id while that
-    // Modrinth id is still empty in gradle.properties.
+    // A loader's Checks jar, from CurseForge by its file id.
     ext.checksArtifact = { String loader ->
-        def modrinthId = project.property("checks_${loader}_modrinth_id")
-        modrinthId
-                ? "maven.modrinth:critfall-checks:${modrinthId}"
-                : "curse.maven:critfall-checks-${checks_curseforge_project_id}:${project.property("checks_${loader}_curseforge_file_id")}"
+        "curse.maven:critfall-checks-${checks_curseforge_project_id}:${project.property("checks_${loader}_curseforge_file_id")}"
     }
 
     // A loader's Initiative jar, from CurseForge by its file id.
@@ -107,11 +103,11 @@ subprojects {
 
         // A shipped gametest entrypoint whose *Scenarios body is not in the jar breaks every
         // consumer's gametest run, and the screenshot driver would take over a player's client —
-        // this guard fails the build if gametest or uishots code reaches a release jar.
+        // this guard fails the build if gametest, uishots or demo code reaches a release jar.
         def guard = tasks.register('verifyNoGametestInReleaseJar') {
             dependsOn releaseJar
             def jarFile = releaseJar.archiveFile
-            def devOnly = ['gametest', 'uishots']
+            def devOnly = ['gametest', 'uishots', 'demo']
             doLast {
                 def offenders = []
                 new java.util.zip.ZipFile(jarFile.get().asFile).withCloseable { zip ->
