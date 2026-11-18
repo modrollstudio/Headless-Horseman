@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "studio.modroll.horseman.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": ["LivingEntityMixin"],
   "injectors": {
     "defaultRequire": 1
   },

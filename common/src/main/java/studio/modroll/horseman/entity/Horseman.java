@@ -41,7 +41,6 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.pathfinder.PathType;
@@ -60,7 +59,7 @@ import studio.modroll.horseman.fight.Effects;
 import studio.modroll.horseman.fight.Head;
 import studio.modroll.horseman.fight.HorsemanCombat;
 import studio.modroll.horseman.fight.Lines;
-import studio.modroll.horseman.item.HorsemanItems;
+import studio.modroll.horseman.reward.Rewards;
 import studio.modroll.horseman.sound.HorsemanSounds;
 
 /**
@@ -837,8 +836,7 @@ public class Horseman extends Monster implements GeoEntity {
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
         super.dropCustomDeathLoot(level, source, recentlyHit);
         if (CritfallHorseman.config().drops()) {
-            spawnAtLocation(new ItemStack(HorsemanItems.EXECUTIONERS_SWORD));
-            spawnAtLocation(new ItemStack(HorsemanItems.HORSEMAN_HEAD));
+            Rewards.drop(level, position(), random.nextLong());
         }
     }
 

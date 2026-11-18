@@ -1,0 +1,7 @@
+{
+  "match": {
+    "items": "critfall_horseman:horseman_head",
+    "predicates": { "minecraft:custom_data": "{Lantern:1b}" }
+  },
+  "luminance": 14
+}

@@ -9,11 +9,13 @@ import java.time.MonthDay;
  *
  * @param enabled master switch
  * @param seasonChance chance per midnight in season, 0 to 1
+ * @param everyHalloweenMidnight on Halloween he comes at every in game midnight, not only the first
  */
 public record HorsemanConfig(
         boolean enabled,
         boolean naturalSpawning,
         MonthDay halloweenNight,
+        boolean everyHalloweenMidnight,
         MonthDay seasonStart,
         MonthDay seasonEnd,
         boolean allYear,
@@ -28,16 +30,25 @@ public record HorsemanConfig(
         boolean lines,
         boolean hoofbeats,
         boolean drops,
+        boolean lanternLight,
+        boolean lanternBreath,
+        boolean hangmansRope,
+        boolean treats,
         boolean effects) {
 
     public static final HorsemanConfig DEFAULTS = new HorsemanConfig(
             true,
             true,
             MonthDay.of(10, 31),
+            true,
             MonthDay.of(10, 1),
             MonthDay.of(10, 31),
             false,
             0.1,
+            true,
+            true,
+            true,
+            true,
             true,
             true,
             true,

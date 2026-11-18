@@ -14,6 +14,7 @@ public final class HorsemanEntities {
     public static final ResourceLocation HORSEMAN_ID = CritfallHorseman.id("horseman");
     public static final ResourceLocation STEED_ID = CritfallHorseman.id("gallows_steed");
     public static final ResourceLocation THROWN_HEAD_ID = CritfallHorseman.id("thrown_head");
+    public static final ResourceLocation GALLOWS_ROPES_ID = CritfallHorseman.id("gallows_ropes");
 
     public static final EntityType<Horseman> HORSEMAN = EntityType.Builder.of(Horseman::new, MobCategory.MONSTER)
             .sized(0.9F, 2.2F)
@@ -37,12 +38,22 @@ public final class HorsemanEntities {
             .updateInterval(2)
             .build(THROWN_HEAD_ID.toString());
 
+    public static final EntityType<GallowsRopes> GALLOWS_ROPES = EntityType.Builder.<GallowsRopes>of(
+                    GallowsRopes::new, MobCategory.MISC)
+            .sized(3.0F, 1.5F)
+            .noSave()
+            .noSummon()
+            .clientTrackingRange(8)
+            .updateInterval(20)
+            .build(GALLOWS_ROPES_ID.toString());
+
     private HorsemanEntities() {}
 
     public static void register(BiConsumer<ResourceLocation, EntityType<?>> registrar) {
         registrar.accept(HORSEMAN_ID, HORSEMAN);
         registrar.accept(STEED_ID, STEED);
         registrar.accept(THROWN_HEAD_ID, THROWN_HEAD);
+        registrar.accept(GALLOWS_ROPES_ID, GALLOWS_ROPES);
     }
 
     public static void attributes(BiConsumer<EntityType<? extends LivingEntity>, AttributeSupplier> registrar) {

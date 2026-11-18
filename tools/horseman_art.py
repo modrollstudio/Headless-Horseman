@@ -22,6 +22,7 @@ GEO = ASSETS + 'geo/entity/'
 ANIMATIONS = ASSETS + 'animations/entity/'
 ENTITY = ASSETS + 'textures/entity/'
 ITEM = ASSETS + 'textures/item/'
+MOB_EFFECT = ASSETS + 'textures/mob_effect/'
 
 CLEAR = (0, 0, 0, 0)
 
@@ -1142,7 +1143,7 @@ def sword_icon():
 
 def head_textures():
     """Front, side and top textures for the head item, which uses a block model."""
-    def face_tex(name, face=None, top=False):
+    def face_tex(name, face=None, top=False, lit=True):
         im = Image.new('RGBA', (16, 16), CLEAR)
         glow = Image.new('RGBA', (16, 16), CLEAR)
         sheet = type('S', (), {'im': im, 'glow': glow})()
@@ -1156,6 +1157,12 @@ def head_textures():
                     if kind is not None:
                         big[(x, y)] = kind
         pumpkin(f, face=big or None)
+        if not lit:
+            # Put out: the holes go dark, with a few embers left at the bottom of each.
+            for (x, y), kind in big.items():
+                if kind != 'carved':
+                    ember = (x, y + 1) not in big and rnd('ember', x, y) < 0.5
+                    f.put(x, y, EMBER[2] if ember else CARVED[0] if rnd('dark', x, y) < 0.6 else EMBER[4])
         if top:
             for x in range(6, 10):
                 for y in range(6, 10):
@@ -1166,12 +1173,218 @@ def head_textures():
         save(im, ITEM + name + '.png')
 
     face_tex('horseman_head_front', face=True)
+    face_tex('horseman_head_front_unlit', face=True, lit=False)
     face_tex('horseman_head_side')
     face_tex('horseman_head_top', top=True)
 
 
+ICON_OUTLINE = (14, 12, 16)
+SACK = [(30, 16, 28), (44, 24, 40), (60, 32, 52), (78, 44, 64), (98, 58, 78)]
+BONE = [(150, 140, 118), (190, 180, 152), (222, 214, 186), (240, 234, 210)]
+SOIL = [(26, 19, 15), (38, 27, 20), (52, 37, 26), (66, 48, 33), (82, 60, 41)]
+
+
+def icon(cells, name):
+    """Writes a 16x16 item texture from {(x, y): colour}, with a dark outline round the shape like the sword's."""
+    im = Image.new('RGBA', (16, 16), CLEAR)
+    for (x, y), c in cells.items():
+        if 0 <= x < 16 and 0 <= y < 16:
+            im.putpixel((x, y), rgba(c))
+    for y in range(16):
+        for x in range(16):
+            if (x, y) not in cells and any(
+                    (x + dx, y + dy) in cells for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                im.putpixel((x, y), rgba(ICON_OUTLINE))
+    save(im, ITEM + name + '.png')
+
+
+HEMP = [(80, 62, 40), (114, 90, 58), (148, 118, 78), (180, 150, 104)]
+
+
+def rope_strand(cells, points, key, lit=1.0):
+    """Paints a hemp rope along `points` (pixels in order), twisting every third pixel. Later strands lie on top."""
+    for i, (x, y) in enumerate(points):
+        twist = i % 3
+        c = HEMP[3] if twist == 0 else HEMP[2] if twist == 1 else HEMP[1]
+        cells[(x, y)] = shade(c, lit * (0.92 + rnd(key, x, y) * 0.16))
+
+
+def ring(cx, cy, rx, ry, start=0.0, end=1.0, steps=160):
+    """Pixels round an ellipse from fraction `start` to `end` of a turn, clockwise from the top, without repeats."""
+    out = []
+    for i in range(steps + 1):
+        a = (start + (end - start) * i / steps) * 2 * math.pi
+        p = (round(cx + math.sin(a) * rx), round(cy - math.cos(a) * ry))
+        if p not in out:
+            out.append(p)
+    return out
+
+
+def rope_icon():
+    """The Last Hangman's Rope: a coil of hemp at the top left with a dark hole through it, its free end running down to a
+    hangman's knot and a noose at the bottom right."""
+    cells = {}
+    # The coil: two turns, the inner one in shadow, lit from the top left.
+    for rx, ry, lit in ((2.9, 2.1, 0.78), (4.1, 3.2, 1.0)):
+        for i, (x, y) in enumerate(ring(5.0, 4.2, rx, ry)):
+            light = lit * (1.08 - (x - 5) * 0.03 - (y - 4) * 0.04)
+            cells[(x, y)] = shade(HEMP[3 - i % 3], light * (0.92 + rnd('coil', rx, x, y) * 0.16))
+    # The free end leaves the coil at the bottom right.
+    rope_strand(cells, [(8, 7), (9, 7), (10, 7)], 'end')
+    # The knot: tight wraps, lit on the left.
+    for y in range(6, 11):
+        for x in (11, 12, 13):
+            cells[(x, y)] = HEMP[3] if x == 11 else HEMP[2] if x == 12 else HEMP[1]
+        if y % 2:
+            cells[(12, y)], cells[(13, y)] = HEMP[1], HEMP[0]
+    # The noose hanging from the knot.
+    rope_strand(cells, ring(12.0, 13.0, 2.6, 2.2, 0.55, 1.45), 'noose', 0.92)
+    icon(cells, 'hangmans_rope')
+
+
+def sweets_icon():
+    """Horseman's Treats: a mulberry cloth bag tied at the neck with rope, a stitched patch, and three sweets
+    showing at the top: a pumpkin drop, a bone white skull and a crimson twist in its wrapper."""
+    cells = {}
+    # The bag, lit from the top left.
+    for y in range(7, 16):
+        for x in range(16):
+            dx, dy = (x - 7.5) / 5.6, (y - 11.2) / 4.4
+            if dx * dx + dy * dy <= 1.0:
+                t = 0.62 - dx * 0.28 - dy * 0.25 + (noise('sack', x, y, 2.0) - 0.5) * 0.3
+                cells[(x, y)] = pick(SACK, t)
+    # Folds running down from the neck.
+    for x, y0 in ((5, 9), (9, 9), (7, 12)):
+        for y in range(y0, y0 + 3):
+            cells[(x, y)] = SACK[0]
+    # The gathered cloth above the tie.
+    for x in range(4, 12):
+        cells[(x, 5)] = pick(SACK, 0.7 - (x - 4) * 0.07)
+    for x in range(5, 11):
+        cells[(x, 6)] = HEMP[(x + 1) % 3 + 1]
+    cells[(11, 7)] = HEMP[2]
+    cells[(12, 8)] = HEMP[1]
+    # A patch with stitches at two corners.
+    for x in range(10, 13):
+        for y in range(11, 14):
+            cells[(x, y)] = APRON[2] if (x + y) % 2 else APRON[1]
+    cells[(10, 11)], cells[(12, 13)] = BONE[0], BONE[0]
+    # The sweets, overlapping the gathered cloth.
+    for (x, y) in ((2, 2), (3, 2), (4, 2), (2, 3), (3, 3), (4, 3), (2, 4), (3, 4), (4, 4)):
+        cells[(x, y)] = PUMPKIN[1] if x == 3 and y > 2 else PUMPKIN[4] if (x, y) == (2, 2) else PUMPKIN[3]
+    cells[(3, 1)] = STEM[2]
+    for x in (6, 7, 8):
+        for y in (1, 2, 3, 4):
+            cells[(x, y)] = BONE[3] if y == 1 else BONE[2] if x < 8 else BONE[1]
+    cells[(6, 2)], cells[(8, 2)] = ICON_OUTLINE, ICON_OUTLINE  # the skull's eyes
+    cells[(7, 4)] = BONE[0]
+    for (x, y) in ((10, 3), (11, 3), (12, 3), (10, 4), (11, 4), (12, 4)):
+        cells[(x, y)] = (150, 44, 34) if y == 3 and x < 12 else CRIMSON[3] if y == 3 else CRIMSON[2]
+    for (x, y) in ((9, 2), (9, 5), (13, 2), (13, 5)):
+        cells[(x, y)] = CRIMSON[1]
+    icon(cells, 'horsemans_treats')
+
+
+def effect_icons():
+    """18x18 status icons: Bound (a noose drawn tight) and Wraithwalk (a pale wisp trailing smoke)."""
+    def write_icon(cells, name):
+        im = Image.new('RGBA', (18, 18), CLEAR)
+        for (x, y), c in cells.items():
+            im.putpixel((x, y), rgba(c))
+        for y in range(18):
+            for x in range(18):
+                if (x, y) not in cells and any(
+                        (x + dx, y + dy) in cells for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    im.putpixel((x, y), rgba(ICON_OUTLINE))
+        save(im, MOB_EFFECT + name + '.png')
+
+    bound = {}
+    rope_strand(bound, [(9, y) for y in range(1, 6)], 'bound_line')
+    for y in range(5, 9):
+        for x in (8, 9, 10):
+            bound[(x, y)] = HEMP[3] if x == 8 else HEMP[2] if x == 9 else HEMP[1]
+    rope_strand(bound, ring(9.0, 12.5, 4.0, 3.6, 0.58, 1.42), 'bound_loop')
+    write_icon(bound, 'bound')
+
+    wisp = {}
+    pale = [(120, 126, 146), (160, 168, 188), (200, 206, 222), (236, 240, 248)]
+    for y in range(18):
+        for x in range(18):
+            dx, dy = (x - 9) / 4.5, (y - 7) / 5.0
+            if y <= 9 and dx * dx + dy * dy <= 1.0 or y > 9 and abs(x - 9 + (y - 9) * 0.6) < 4.5 - (y - 9) * 0.7:
+                wisp[(x, y)] = pick(pale, 0.85 - (x - 6) * 0.06 - (y - 3) * 0.04)
+    for p in ((7, 6), (11, 6), (7, 7), (11, 7)):
+        wisp[p] = (24, 22, 30)
+    write_icon(wisp, 'wraithwalk')
+
+
+def soil(f):
+    """Churned earth round the base of a rope, with ember cracks glowing on the top face."""
+    for y in range(f.h):
+        for x in range(f.w):
+            n = noise((f.key, 'soil'), x, y, 1.5)
+            f.put(x, y, pick(SOIL, 0.2 + n * 0.8))
+            if f.side == 'up' and rnd(f.key, 'crack', x, y) < 0.16:
+                f.put(x, y, EMBER[1] if n > 0.5 else EMBER[2])
+                f.glow(x, y)
+
+
+GALLOWS_STRANDS = ((0, 0, 0), (13, 7, 70), (-12, 9, 150), (-9, -12, 230), (11, -10, 300))
+
+
+def gallows_ropes():
+    """The ropes that burst from the ground: five strands of four segments that curl over at the top into a noose,
+    each with a clod of earth at its base. Every strand hangs off its own strand_<n> bone, so the animations can
+    raise them one after another."""
+    m = Model('gallows_ropes', 128)
+    m.bone('root', (0, 0, 0))
+    for n, (x, z, yaw) in enumerate(GALLOWS_STRANDS):
+        strand = 'strand_%d' % n
+        m.bone(strand, (x, 0, z), 'root', rotation=(0, yaw, 0))
+        m.cube(strand, (x - 2.5, 0, z - 2.5), (5, 1, 5), soil)
+        parent, y = strand, 1
+        for k, (length, bend) in enumerate(((6, 6), (6, 12), (5, 22), (4, 34))):
+            seg = '%s_%d' % (strand, k)
+            m.bone(seg, (x, y, z), parent, rotation=(bend, 0, 0))
+            m.cube(seg, (x - 1, y, z - 1), (2, length, 2), rope)
+            parent, y = seg, y + length
+        # The knot at the tip, and the loop hanging straight down from it: the noose bone turns back the curl.
+        noose = strand + '_noose'
+        m.bone(noose, (x, y, z), parent, rotation=(-74, 0, 0))
+        m.cube(noose, (x - 1.5, y - 3, z - 1.5), (3, 4, 3), rope, all={'coil': True})
+        m.cube(noose, (x - 3, y - 9, z - 0.5), (1, 6, 1), rope)
+        m.cube(noose, (x + 2, y - 9, z - 0.5), (1, 6, 1), rope)
+        m.cube(noose, (x - 2, y - 10, z - 0.5), (4, 1, 1), rope)
+        m.cube(noose, (x - 2, y - 4, z - 0.5), (4, 1, 1), rope)
+    m.write((3, 3))
+
+
+def gallows_ropes_animations():
+    """burst: the strands shoot up out of the earth one after another, overshoot and settle. hold: they writhe.
+    sink: they draw back down."""
+    a = {}
+    burst = {}
+    for n in range(len(GALLOWS_STRANDS)):
+        d = n * 0.04
+        burst['strand_%d' % n] = {
+            'position': {0: [0, -30, 0], round(d, 3): [0, -30, 0], round(d + 0.15, 3): [0, 3, 0],
+                         round(d + 0.3, 3): [0, 0, 0]},
+            'scale': {0: [1, 0.2, 1], round(d + 0.15, 3): [1, 1.15, 1], round(d + 0.3, 3): [1, 1, 1]}}
+    a['burst'] = anim(0.5, burst, loop='hold')
+    hold = {}
+    for n in range(len(GALLOWS_STRANDS)):
+        for k in range(4):
+            hold['strand_%d_%d' % (n, k)] = {'rotation': wave(1.6, -6 - k * 2, 6 + k * 2, steps=8,
+                                                             offset=n * 0.21 + k * 0.08, axis=2)}
+    a['hold'] = anim(1.6, hold)
+    sink = {'strand_%d' % n: {'position': {0: [0, 0, 0], 0.4: [0, -30, 0]}, 'scale': {0: [1, 1, 1], 0.4: [1, 0.2, 1]}}
+            for n in range(len(GALLOWS_STRANDS))}
+    a['sink'] = anim(0.4, sink, loop='hold')
+    write(ANIMATIONS + 'gallows_ropes.animation.json', {'format_version': '1.8.0', 'animations': a})
+
+
 def item_models():
-    """Item model JSON for the sword, the two head items and the spawn eggs."""
+    """Item model JSON for the sword, the head items, the rope, the sweets and the spawn eggs."""
     models = ASSETS + 'models/item/'
     write(models + 'executioners_sword.json', {
         'parent': 'minecraft:item/handheld', 'textures': {'layer0': 'critfall_horseman:item/executioners_sword'},
@@ -1185,13 +1398,20 @@ def item_models():
                                               'scale': [0.6, 0.6, 0.6]},
                     'firstperson_lefthand': {'rotation': [0, 90, -25], 'translation': [1.13, 3.2, 1.13],
                                              'scale': [0.6, 0.6, 0.6]}}})
+    head = {'top': 'critfall_horseman:item/horseman_head_top', 'front': 'critfall_horseman:item/horseman_head_front',
+            'side': 'critfall_horseman:item/horseman_head_side', 'particle': 'critfall_horseman:item/horseman_head_side'}
+    # The lantern switched off shows the unlit face, through the client's critfall_horseman:unlit property.
     write(models + 'horseman_head.json', {
-        'parent': 'minecraft:block/orientable', 'textures': {
-            'top': 'critfall_horseman:item/horseman_head_top', 'front': 'critfall_horseman:item/horseman_head_front',
-            'side': 'critfall_horseman:item/horseman_head_side',
-            'particle': 'critfall_horseman:item/horseman_head_side'}})
-    # Same look as the wearable head.
-    write(models + 'burning_head.json', {'parent': 'critfall_horseman:item/horseman_head'})
+        'parent': 'minecraft:block/orientable', 'textures': head,
+        'overrides': [{'predicate': {'critfall_horseman:unlit': 1}, 'model': 'critfall_horseman:item/horseman_head_unlit'}]})
+    write(models + 'horseman_head_unlit.json', {
+        'parent': 'minecraft:block/orientable',
+        'textures': {**head, 'front': 'critfall_horseman:item/horseman_head_front_unlit'}})
+    # Same look as the wearable head, always lit.
+    write(models + 'burning_head.json', {'parent': 'minecraft:block/orientable', 'textures': head})
+    for name in ('hangmans_rope', 'horsemans_treats'):
+        write(models + name + '.json', {'parent': 'minecraft:item/generated',
+                                        'textures': {'layer0': 'critfall_horseman:item/' + name}})
     for egg in ('horseman_spawn_egg', 'gallows_steed_spawn_egg'):
         write(models + egg + '.json', {'parent': 'minecraft:item/template_spawn_egg'})
 
@@ -1201,8 +1421,13 @@ def main():
     steed()
     horseman_animations()
     steed_animations()
+    gallows_ropes()
+    gallows_ropes_animations()
     sword_icon()
     head_textures()
+    rope_icon()
+    sweets_icon()
+    effect_icons()
     item_models()
 
 

@@ -225,7 +225,52 @@ def gif(frames, path, seconds):
     frames[0].save(path, save_all=True, append_images=frames[1:], duration=round(seconds * 1000 / len(frames)), loop=0)
 
 
+def head_block(lit):
+    """The head item's block model as a one cube geo with a 48x16 sheet: front, side, top."""
+    tex = Image.new('RGBA', (48, 16))
+    item = ASSETS + 'textures/item/horseman_head_'
+    for i, name in enumerate(('front' if lit else 'front_unlit', 'side', 'top')):
+        tex.paste(Image.open(item + name + '.png').convert('RGBA'), (i * 16, 0))
+    side = {'uv': [16, 0], 'uv_size': [16, 16]}
+    geo = {'bones': [{'name': 'head', 'pivot': [0, 0, 0], 'cubes': [{
+        'origin': [-8, 0, -8], 'size': [16, 16, 16], 'uv': {
+            'north': {'uv': [0, 0], 'uv_size': [16, 16]}, 'south': side, 'east': side, 'west': side,
+            'up': {'uv': [32, 0], 'uv_size': [16, 16]}, 'down': side}}]}]}
+    arr = np.asarray(tex).astype(np.float32)
+    # The lit face is bright enough to read as glowing; draw it unshaded like a glowmask.
+    glow = np.zeros(arr.shape[:2], bool)
+    if lit:
+        glow[:, :16] = arr[:, :16, 0] > 230
+    return faces(geo, {}), arr, glow
+
+
+def items():
+    """The item textures at 10x, then the head block lit and unlit and the effect icons, to design/renders/items.png."""
+    names = ('executioners_sword', 'horseman_head_front', 'horseman_head_front_unlit', 'hangmans_rope', 'horsemans_treats')
+    icons = Image.new('RGB', (len(names) * 180, 200), (24, 24, 32))
+    draw = ImageDraw.Draw(icons)
+    for i, name in enumerate(names):
+        im = Image.open(ASSETS + 'textures/item/' + name + '.png').convert('RGBA').resize((160, 160), Image.NEAREST)
+        icons.paste(im, (i * 180 + 10, 30), im)
+        draw.text((i * 180 + 10, 8), name.replace('_', ' '), fill=(210, 200, 190))
+    blocks = [render([head_block(lit)], OUT + '_frame.png', yaw=-30, pitch=24, size=(450, 300), px=10,
+                     centre=(0, 8, 0), label='head, ' + ('lit' if lit else 'switched off')) for lit in (True, False)]
+    effects = Image.new('RGB', (360, 300), (24, 24, 32))
+    for i, name in enumerate(('bound', 'wraithwalk')):
+        im = Image.open(ASSETS + 'textures/mob_effect/' + name + '.png').convert('RGBA').resize((144, 144), Image.NEAREST)
+        effects.paste(im, (20 + i * 170, 60), im)
+        ImageDraw.Draw(effects).text((20 + i * 170, 30), 'effect: ' + name, fill=(210, 200, 190))
+    out = Image.new('RGB', (icons.width + 360, 200 + 300), (0, 0, 0))
+    out.paste(effects, (icons.width, 200))
+    out.paste(icons, (0, 0))
+    for i, im in enumerate(blocks):
+        out.paste(im, (i * 450, 200))
+    out.save(OUT + 'items.png')
+
+
 def main():
+    items()
+    ropes_geo, ropes_anims, ropes_tex, ropes_glow = load('gallows_ropes')
     rider_geo, rider_anims, rider_tex, rider_glow = load('horseman')
     horse_geo, horse_anims, horse_tex, horse_glow = load('gallows_steed')
     seat = trans(-SEAT[0], SEAT[1], SEAT[2])
@@ -294,6 +339,17 @@ def main():
     shot('sword_close', [rider([('idle', 0)], 0)], 'the sword', yaw=-90, pitch=10, size=(640, 360), px=11,
          centre=(8, 4, -14))
 
+    def ropes(layers, t):
+        return faces(ropes_geo, pose(ropes_anims, layers, t)), ropes_tex, ropes_glow
+
+    near = dict(size=(640, 520), px=10, centre=(0, 12, 0), pitch=22)
+    for t in (0.08, 0.16, 0.5):
+        shot('gallows_ropes_burst_%g' % t, [ropes([('burst', 0)], t)], 'gallows ropes, burst at %gs' % t, yaw=-30,
+             **near)
+    shot('gallows_ropes_hold', [ropes([('burst', 0), ('hold', 0)], 0.6)], 'gallows ropes, holding', yaw=40, **near)
+    shot('gallows_ropes_top', [ropes([('burst', 0)], 0.5)], 'gallows ropes, from above', yaw=0, pitch=89,
+         size=(640, 520), px=10, centre=(0, 12, 0))
+
     sheet([s for s in shots], OUT + 'contact_sheet.png', 4)
     # Animated GIFs.
     gif([render([rider([('idle', 0)], i * 0.05)], OUT + '_frame.png', **head)
@@ -305,6 +361,8 @@ def main():
                 centre=(0, 28, -2)) for i in range(20)], OUT + 'steed_gallop.gif', 1.0)
     gif([render([horse([('idle', 0)], i * 0.15)], OUT + '_frame.png', yaw=150, pitch=8, size=(480, 480), px=7,
                 centre=(0, 28, 10)) for i in range(20)], OUT + 'steed_tail.gif', 3.0)
+    gif([render([ropes([('burst', 0)] + ([('hold', 0)] if i * 0.05 > 0.5 else []), i * 0.05)], OUT + '_frame.png',
+                yaw=-30, **near) for i in range(40)], OUT + 'gallows_ropes.gif', 2.0)
     os.remove(OUT + '_frame.png')
     print('wrote', len(shots), 'renders and 2 animations to', OUT)
 
