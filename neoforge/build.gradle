@@ -10,6 +10,8 @@ def common = project(':common')
 sourceSets {
     gametest
     uishots
+    // The /horseman demo command: dev runs only, never shipped.
+    demo
 }
 
 // -PwithoutChecks leaves Checks off the dev runs, so the GameTests run as a pack without it would.
@@ -27,6 +29,7 @@ neoForge {
 
     addModdingDependenciesTo sourceSets.gametest
     addModdingDependenciesTo sourceSets.uishots
+    addModdingDependenciesTo sourceSets.demo
 
     runs {
         client {
@@ -73,6 +76,9 @@ neoForge {
             // The screenshot driver — dev runs only, not shipped in the jar.
             sourceSet common.sourceSets.uishots
             sourceSet sourceSets.uishots
+            // The /horseman demo command — dev runs only, not shipped in the jar.
+            sourceSet common.sourceSets.demo
+            sourceSet sourceSets.demo
         }
     }
 }
@@ -86,6 +92,9 @@ dependencies {
 
     uishotsCompileOnly project(':common')
     uishotsCompileOnly common.sourceSets.uishots.output
+
+    demoCompileOnly project(':common')
+    demoCompileOnly common.sourceSets.demo.output
 
     // Critfall and GeckoLib consumed as published Modrinth artifacts; implementation puts them on the
     // dev-run runtime classpath so FML loads them as mods in runClient/gameTestServer.
@@ -113,7 +122,7 @@ def wipeUiShots = tasks.register('wipeUiShots', Delete) {
 tasks.matching { it.name == 'runUiShots' }.configureEach { dependsOn wipeUiShots }
 
 // Nothing in the build graph compiles the gametest or uishots source sets otherwise; keep `check` catching them.
-tasks.named('check') { dependsOn tasks.named('gametestClasses'), tasks.named('uishotsClasses') }
+tasks.named('check') { dependsOn tasks.named('gametestClasses'), tasks.named('uishotsClasses'), tasks.named('demoClasses') }
 
 // Bundle common's compiled classes into the NeoForge jar. Common's resources come through
 // processResources below (with property expansion) — bundling output too would duplicate them.

@@ -28,6 +28,13 @@ sourceSets {
         runtimeClasspath += sourceSets.main.runtimeClasspath
         runtimeClasspath += sourceSets.main.output
     }
+    // The /horseman demo command: only the client, client2 and server runs put it on the classpath.
+    demo {
+        compileClasspath += sourceSets.main.compileClasspath
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+        runtimeClasspath += sourceSets.main.output
+    }
 }
 
 dependencies {
@@ -45,6 +52,7 @@ dependencies {
     // Shared GameTest bodies: on the gametest source set only, never bundled into the jar.
     gametestImplementation common.sourceSets.gametest.output
     uishotsImplementation common.sourceSets.uishots.output
+    demoImplementation common.sourceSets.demo.output
 
     // Critfall and GeckoLib consumed as published Modrinth artifacts (the intermediary-mapped release
     // jars); modImplementation has Loom remap them to named for dev runs and load them as mods.
@@ -73,10 +81,12 @@ loom {
     runs {
         server {
             server()
+            source sourceSets.demo
             ideConfigGenerated = true
         }
         client {
             client()
+            source sourceSets.demo
             programArgs '--username', 'Dev1'
         }
         // Second client for party playtests: its own game directory so the two do not share a
@@ -85,6 +95,7 @@ loom {
             client()
             name = 'Minecraft Client 2'
             runDir = 'run2'
+            source sourceSets.demo
             programArgs '--username', 'Dev2'
             ideConfigGenerated = true
         }
@@ -156,4 +167,4 @@ def wipeUiShots = tasks.register('wipeUiShots', Delete) {
 tasks.matching { it.name == 'runUiShots' }.configureEach { dependsOn wipeUiShots }
 
 // Nothing in the build graph compiles the gametest or uishots source sets otherwise; keep `check` catching them.
-tasks.named('check') { dependsOn tasks.named('gametestClasses'), tasks.named('uishotsClasses') }
+tasks.named('check') { dependsOn tasks.named('gametestClasses'), tasks.named('uishotsClasses'), tasks.named('demoClasses') }

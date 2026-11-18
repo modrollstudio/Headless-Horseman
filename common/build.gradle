@@ -14,6 +14,11 @@ sourceSets {
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
     }
+    // The dev-only /horseman demo command: kept out of the jar like gametest.
+    demo {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
 }
 
 // Vanilla Minecraft (Mojang mappings) without any loader — code here must stay loader-agnostic.
@@ -22,6 +27,7 @@ neoForge {
     addModdingDependenciesTo sourceSets.test
     addModdingDependenciesTo sourceSets.gametest
     addModdingDependenciesTo sourceSets.uishots
+    addModdingDependenciesTo sourceSets.demo
 }
 
 // Modrinth publishes no loader-agnostic `common` artifact, so the API comes from the NeoForge
@@ -35,6 +41,7 @@ dependencies {
     compileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
     gametestCompileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
     uishotsCompileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
+    demoCompileOnly "maven.modrinth:geckolib:${geckolib_neoforge_modrinth_id}"
 }
 
 processResources {
