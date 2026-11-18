@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "critfall_horseman_demo",
+  "version": "1.0.0",
+  "name": "Critfall: Headless Horseman Demo",
+  "description": "Dev-only /horseman demo command for Critfall: Headless Horseman; never shipped.",
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["studio.modroll.horseman.fabric.demo.FabricDemo"]
+  },
+  "depends": {
+    "critfall_horseman": "*"
+  }
+}
