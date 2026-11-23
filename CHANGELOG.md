@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 — 2026-10-20
+## 0.2.0 — 2026-11-04
 
 Requires Critfall 0.2.19 or newer.
 
